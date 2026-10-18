@@ -39,13 +39,13 @@
       "id": "plugin",
       "name": "Claude Code plugin",
       "description": "Add the repository as a plugin marketplace.",
-      "usage": "/plugin marketplace add <owner>/<repo>"
+      "usage": "/plugin marketplace add Alaa91H/portable-agent-skills"
     },
     {
       "id": "registry",
       "name": "skills.sh registry",
       "description": "Groupings for the skills.sh repository page, via skills.sh.json.",
-      "usage": "npx skills add <owner>/<repo>"
+      "usage": "npx skills add Alaa91H/portable-agent-skills"
     },
     {
       "id": "reference-validator",

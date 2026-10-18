@@ -10,7 +10,7 @@ this repository, and mirrored into every agent discovery convention so it works
 with any agent out of the box.
 
 ```sh
-git clone <this-repo> && cd <this-repo> && ./install.sh
+git clone https://github.com/Alaa91H/portable-agent-skills.git && cd portable-agent-skills && ./install.sh
 ```
 
 Current release: **1.1.0** · 69 skills · 16 domains · 14 agents · MIT
@@ -112,14 +112,14 @@ scripts/build-catalog.sh          # emits dist/index.json with descriptions
 Or through the community registry:
 
 ```sh
-npx skills add <owner>/<repo>          # project scope
-npx skills add <owner>/<repo> -g       # global scope
+npx skills add Alaa91H/portable-agent-skills          # project scope
+npx skills add Alaa91H/portable-agent-skills -g       # global scope
 ```
 
 Install as a Claude Code plugin:
 
 ```text
-/plugin marketplace add <owner>/<repo>
+/plugin marketplace add Alaa91H/portable-agent-skills
 /plugin install essential-skills@essential-agent-skills
 ```
 

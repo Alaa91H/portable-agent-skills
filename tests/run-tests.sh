@@ -359,6 +359,52 @@ if [ -n "$NORMALIZE" ] && [ -x "$NORMALIZE" ] || [ -n "$NORMALIZE" ]; then
   fi
 fi
 
+# ------------------------------------------------- published metadata drift
+#
+# The Claude plugin marketplace is published but written by hand, so nothing
+# regenerated it and nothing compared it to a source of truth. It sat at version
+# 1.0.0 advertising 23 skills while the collection was at 1.1.0 with 69, and the
+# only reason it surfaced is that publishing was imminent.
+#
+# Both directions are pinned. A check that only ever passes cannot be told from
+# a check that is not looking, so the drift is planted deliberately.
+MARKETPLACE="$ROOT/.claude-plugin/marketplace.json"
+
+if [ -f "$MARKETPLACE" ]; then
+  mp_backup="$(mktemp)"
+  cp "$MARKETPLACE" "$mp_backup"
+  trap 'cp "$mp_backup" "$MARKETPLACE"; rm -f "$mp_backup"' RETURN
+
+  mp_assert() {
+    local label="$1" expect="$2"
+    local out rc
+    out="$(cd "$ROOT" && bash "$VALIDATOR" 2>&1)"; rc=$?
+    if [ "$rc" = "$expect" ]; then
+      printf '  %sok%s    %s\n' "$GRN" "$RST" "$label"
+      passes=$((passes + 1))
+    else
+      printf '  %sFAIL%s  %-24s expected exit %s, got %s\n' "$RED" "$RST" "$label" "$expect" "$rc"
+      printf '%s\n' "$out" | grep -i marketplace | sed 's/^/          /'
+      failures=$((failures + 1))
+    fi
+  }
+
+  mp_assert marketplace-clean-by-default 0
+
+  # Plant the exact drift that was found: a stale version.
+  sed -i 's/"version": *"[^"]*"/"version": "0.0.1-stale"/' "$MARKETPLACE"
+  mp_assert marketplace-version-drift 1
+
+  # And a stale count, which is the one that rots quietly, because it is prose.
+  cp "$mp_backup" "$MARKETPLACE"
+  sed -i 's/"description": *"[0-9][0-9]* /"description": "3 /' "$MARKETPLACE"
+  mp_assert marketplace-count-drift 1
+
+  cp "$mp_backup" "$MARKETPLACE"
+  rm -f "$mp_backup"
+  trap - RETURN
+fi
+
 # ------------------------------------------------------------------- summary
 printf '\n'
 if [ "$failures" -gt 0 ]; then
