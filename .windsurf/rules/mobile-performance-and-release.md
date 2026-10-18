@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when a mobile app is slow to start, janky to scroll, or rejected by review."
+description: "Use when a mobile app is slow to start, janky to scroll, or rejected."
 ---
 
 

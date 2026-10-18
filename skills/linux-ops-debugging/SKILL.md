@@ -1,6 +1,6 @@
 ---
 name: linux-ops-debugging
-description: Use when debugging a Linux host, a systemd unit, disk, permissions, or SSH.
+description: Use when debugging a Linux host, systemd unit, disk, or SSH.
 ---
 
 # Linux operations and debugging

@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when setting or reviewing security headers, CSP, or CORS policy."
+description: "Use when setting or reviewing security headers, CSP or CORS."
 ---
 
 

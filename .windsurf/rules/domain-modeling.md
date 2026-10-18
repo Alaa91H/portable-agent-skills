@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when identifying domain concepts, business rules, or unclear code vocabulary."
+description: "Use when identifying domain concepts, business rules, or unclear vocabulary."
 ---
 
 

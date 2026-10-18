@@ -1,5 +1,5 @@
 ---
-description: "Use when auditing a page or component for WCAG, screen readers, or keyboard operability."
+description: "Use when auditing a page or component for WCAG, screen readers, or keyboards."
 ---
 
 

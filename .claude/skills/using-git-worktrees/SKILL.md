@@ -1,6 +1,6 @@
 ---
 name: using-git-worktrees
-description: Use when work should not disturb the current checkout, or branches run at once.
+description: Use when work should not disturb the checkout, or run branches at once.
 ---
 
 # Using git worktrees

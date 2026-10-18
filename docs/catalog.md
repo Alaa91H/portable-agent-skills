@@ -10,7 +10,7 @@ The routing sentence is the skill's exact `description`. Changing it changes whe
 the agent reaches for the skill, so treat it as reviewed surface rather than
 incidental wording.
 
-69 skills, grouped by cluster.
+74 skills, grouped by cluster.
 
 
 ## Craft and process
@@ -19,11 +19,11 @@ Deciding what to do, doing it test-first, and proving it works.
 
 | Skill | Routes when |
 | --- | --- |
-| `planning-before-implementation` | Use when a task needs a plan, spec, or breakdown before any code is written. |
-| `writing-acceptance-criteria` | Use when a requirement is ambiguous, or before tests, to pin down scope. |
+| `planning-before-implementation` | Use when a task needs a plan or breakdown before code is written. |
+| `writing-acceptance-criteria` | Use when a requirement is ambiguous, or before tests, to fix scope. |
 | `test-driven-development` | Use when adding or changing a feature or bugfix that needs tests. |
 | `systematic-debugging` | Use when a test or build fails and the cause is not yet known. |
-| `verification-before-completion` | Use when about to report work complete or fixed, or before committing. |
+| `verification-before-completion` | Use when about to report work complete, or before committing. |
 
 ## Testing and review
 
@@ -31,24 +31,26 @@ Getting work checked, acting on the feedback, and proving it under load.
 
 | Skill | Routes when |
 | --- | --- |
-| `requesting-code-review` | Use when finishing a feature or branch, before merging, to get it reviewed. |
-| `receiving-code-review` | Use when code-review comments arrive, especially when they conflict. |
-| `property-based-testing` | Use when testing structured or invalid input, or when examples keep missing bugs. |
-| `webapp-testing` | Use when verifying a web app in a real browser, or debugging a UI issue. |
+| `requesting-code-review` | Use when a feature or branch is ready, before merging, to get it reviewed. |
+| `receiving-code-review` | Use when code-review comments arrive, or conflict with your work. |
+| `property-based-testing` | Use when testing structured or invalid input, or examples miss bugs. |
+| `webapp-testing` | Use when verifying a web app in a browser, or debugging a UI issue. |
 | `contract-and-load-testing` | Use when writing Pact contract tests, or load testing an API. |
-| `refactoring-without-breaking-behaviour` | Use when restructuring code where existing tests must keep passing. |
+| `refactoring-without-breaking-behaviour` | Use when restructuring code where the existing tests must pass. |
 
 ## Working in a codebase
 
-Orienting yourself, getting it running, and finding the model underneath the code.
+Orienting yourself, getting it running, keeping it current, and keeping its structure workable.
 
 | Skill | Routes when |
 | --- | --- |
-| `onboarding-unfamiliar-codebase` | Use when opening an unfamiliar repository, or orienting in a codebase. |
-| `environment-bootstrap` | Use when setting up a dev environment, installing dependencies, or running a project. |
-| `domain-modeling` | Use when identifying domain concepts, business rules, or unclear code vocabulary. |
-| `improving-codebase-architecture` | Use when reviewing codebase structure, duplication, or prioritising refactors. |
-| `writing-technical-docs` | Use when writing or updating README, architecture notes, or API reference. |
+| `onboarding-unfamiliar-codebase` | Use when opening an unfamiliar repository, or orienting in one. |
+| `environment-bootstrap` | Use when setting up a dev environment, installing dependencies or running it. |
+| `domain-modeling` | Use when identifying domain concepts, business rules, or unclear vocabulary. |
+| `improving-codebase-architecture` | Use when reviewing codebase structure, duplication or refactor priority. |
+| `writing-technical-docs` | Use when updating a README, architecture notes or API reference. |
+| `codebase-decomposition` | Use when a file has grown large, or deciding where behaviour belongs. |
+| `up-to-date-tooling` | Use when choosing a library or API, recalling a version, or adopting newer tooling. |
 
 ## Version control
 
@@ -56,10 +58,10 @@ Branches, worktrees, merges, and the plumbing underneath when git surprises you.
 
 | Skill | Routes when |
 | --- | --- |
-| `using-git-worktrees` | Use when work should not disturb the current checkout, or branches run at once. |
-| `finishing-a-development-branch` | Use when a branch is ready to merge, hand off, or open a pull request. |
-| `resolving-merge-conflicts` | Use when git reports a conflict, a rebase stops, or CONFLICT markers remain. |
-| `git-internals` | Use when recovering lost work, bisecting a regression, or managing hooks and submodules. |
+| `using-git-worktrees` | Use when work should not disturb the checkout, or run branches at once. |
+| `finishing-a-development-branch` | Use when a branch is ready to merge, hand off, or open a PR. |
+| `resolving-merge-conflicts` | Use when git reports a conflict, a rebase stops, or markers remain. |
+| `git-internals` | Use when recovering lost work, bisecting, or managing submodules. |
 
 ## Interfaces and accessibility
 
@@ -67,11 +69,11 @@ Building and reviewing interfaces, including localisation and WCAG conformance.
 
 | Skill | Routes when |
 | --- | --- |
-| `frontend-design` | Use when building or restyling a user interface, component, or page. |
-| `css-architecture` | Use when setting up design tokens, growing a stylesheet, or choosing a styling approach. |
-| `web-design-guidelines` | Use when reviewing UI code against interface, accessibility, or UX guidelines. |
-| `accessibility-audit` | Use when auditing a page or component for WCAG, screen readers, or keyboard operability. |
-| `localization-i18n` | Use when adding translations, handling plurals, or formatting dates and numbers. |
+| `frontend-design` | Use when building or restyling an interface, component or page. |
+| `css-architecture` | Use when setting up design tokens, growing a stylesheet or choosing styling. |
+| `web-design-guidelines` | Use when reviewing UI code against interface, accessibility or UX. |
+| `accessibility-audit` | Use when auditing a page or component for WCAG, screen readers, or keyboards. |
+| `localization-i18n` | Use when adding translations, plurals, or date and number formats. |
 
 ## APIs and integrations
 
@@ -79,12 +81,12 @@ HTTP and GraphQL contracts, versioning, webhooks, authentication, and payments.
 
 | Skill | Routes when |
 | --- | --- |
-| `rest-api-design` | Use when designing or reviewing an HTTP API, its errors, pagination, or idempotency. |
+| `rest-api-design` | Use when designing or reviewing an HTTP API: errors, pagination, idempotency. |
 | `api-contract-versioning` | Use when changing an API in a breaking way, or deciding on a versioning scheme. |
-| `graphql-api-security` | Use when exposing or reviewing a GraphQL API, or when it is slow or being abused. |
-| `webhook-integration` | Use when sending or receiving webhooks, or verifying webhook signatures. |
-| `oauth-authentication` | Use when implementing login, token handling, sessions, or OAuth flows. |
-| `payments-integration` | Use when integrating a payment provider, or handling subscriptions or payment webhooks. |
+| `graphql-api-security` | Use when exposing or reviewing a GraphQL API, or when it is abused. |
+| `webhook-integration` | Use when sending or receiving webhooks, or verifying signatures. |
+| `oauth-authentication` | Use when implementing login, tokens, sessions, or OAuth flows. |
+| `payments-integration` | Use when integrating a payment provider, subscriptions or webhooks. |
 
 ## Data and storage
 
@@ -92,10 +94,10 @@ Queries, schema changes, caching, and background processing.
 
 | Skill | Routes when |
 | --- | --- |
-| `sql-query-performance` | Use when a query is slow, an index is missing, or querying a large table. |
-| `database-migrations` | Use when running schema migrations or backfills, or when a migration blocks queries. |
+| `sql-query-performance` | Use when a query is slow, an index is missing, or a table is large. |
+| `database-migrations` | Use when running schema migrations or backfills that block queries. |
 | `caching-and-stampedes` | Use when adding or tuning a cache, or when a hot key overwhelms the database. |
-| `message-queue-processing` | Use when writing or reviewing queue consumers, workers, or retries. |
+| `message-queue-processing` | Use when writing queue consumers, workers, retries or dead letters. |
 
 ## Data engineering
 
@@ -104,9 +106,9 @@ Modelling the warehouse, orchestrating pipelines, and tuning distributed compute
 | Skill | Routes when |
 | --- | --- |
 | `dbt-modeling` | Use when writing dbt models, incremental models, or fixing a broken build. |
-| `dimensional-modeling` | Use when designing a warehouse schema, or choosing a slowly changing dimension type. |
-| `orchestration-dag-authoring` | Use when writing or debugging Airflow, Dagster or Prefect pipelines. |
-| `spark-performance` | Use when a Spark job is slow, data skew is suspected, or joins misbehave. |
+| `dimensional-modeling` | Use when designing a warehouse schema, or a slowly changing dimension. |
+| `orchestration-dag-authoring` | Use when writing or debugging Airflow, Dagster or Prefect DAGs. |
+| `spark-performance` | Use when a Spark job is slow, data skew is suspected, or joins break. |
 
 ## Infrastructure and operations
 
@@ -115,11 +117,11 @@ Containers, orchestration, infrastructure code, pipelines, hosts, and incidents.
 | Skill | Routes when |
 | --- | --- |
 | `docker-containerization` | Use when writing a Dockerfile, or debugging image size, cache, or signals. |
-| `kubernetes-deployment` | Use when writing or reviewing Kubernetes manifests, probes, limits, or rollouts. |
-| `infrastructure-as-code` | Use when writing Terraform or other infrastructure code, or diagnosing drift. |
+| `kubernetes-deployment` | Use when writing or reviewing Kubernetes manifests or probes. |
+| `infrastructure-as-code` | Use when writing Terraform or infrastructure code, or diagnosing drift. |
 | `ci-pipeline-security` | Use when writing or reviewing CI workflows, or assessing supply chain risk. |
-| `linux-ops-debugging` | Use when debugging a Linux host, a systemd unit, disk, permissions, or SSH. |
-| `incident-response` | Use when responding to a production incident, outage, or alert. |
+| `linux-ops-debugging` | Use when debugging a Linux host, systemd unit, disk, or SSH. |
+| `incident-response` | Use when responding to a production incident, outage or alert. |
 
 ## Platform operations
 
@@ -129,9 +131,9 @@ Cloud posture and cost, secrets and flags, search relevance, and mobile release.
 | --- | --- |
 | `cloud-security-and-cost` | Use when reviewing cloud IAM, network exposure, or reducing cloud spend. |
 | `feature-flag-and-secrets-lifecycle` | Use when adding or retiring a feature flag, or rotating secrets. |
-| `search-engineering` | Use when designing an Elasticsearch index, or tuning query relevance. |
-| `mobile-performance-and-release` | Use when a mobile app is slow to start, janky to scroll, or rejected by review. |
-| `email-deliverability` | Use when sending email, configuring SPF, DKIM or DMARC, or when mail is being filtered. |
+| `search-engineering` | Use when designing an Elasticsearch index or tuning relevance. |
+| `mobile-performance-and-release` | Use when a mobile app is slow to start, janky to scroll, or rejected. |
+| `email-deliverability` | Use when sending email, or configuring SPF, DKIM, or DMARC records. |
 
 ## Performance and observability
 
@@ -139,9 +141,9 @@ Finding the bottleneck, reasoning about concurrency, and knowing whether the sys
 
 | Skill | Routes when |
 | --- | --- |
-| `performance-profiling` | Use when a program is slow or memory grows, or when profiling CPU or allocations. |
-| `concurrency-and-async` | Use when writing concurrent or async code, or diagnosing races, deadlocks, or blocking. |
-| `observability-and-slos` | Use when defining SLOs, error budgets, or setting up metrics, logging, and tracing. |
+| `performance-profiling` | Use when a program is slow or memory grows, or when profiling CPU. |
+| `concurrency-and-async` | Use when writing concurrent code, or diagnosing races and deadlocks. |
+| `observability-and-slos` | Use when defining SLOs, error budgets, or metrics, logging and tracing. |
 
 ## Reliability and lifecycle
 
@@ -149,10 +151,10 @@ Shipping, recovering, scheduling, and handling the data you hold about people.
 
 | Skill | Routes when |
 | --- | --- |
-| `release-engineering` | Use when cutting a release, writing a changelog, or planning a rollback. |
+| `release-engineering` | Use when cutting a release, writing a changelog, or a rollback plan. |
 | `backup-and-disaster-recovery` | Use when designing backups, recovery objectives, or planning for data loss. |
 | `background-jobs-and-scheduling` | Use when adding cron or a job queue, or when jobs overlap, drift, or run twice. |
-| `privacy-and-data-retention` | Use when handling personal data, deletion, or retention policy. |
+| `privacy-and-data-retention` | Use when handling personal data, deletion or retention rules. |
 
 ## Security
 
@@ -160,10 +162,10 @@ Finding exploitable defects in code, dependencies, response headers, and agent i
 
 | Skill | Routes when |
 | --- | --- |
-| `security-code-review` | Use when reviewing code that handles untrusted input, auth, secrets, or file access. |
+| `security-code-review` | Use when reviewing code handling untrusted input, auth or secrets. |
 | `dependency-supply-chain-review` | Use when adding or upgrading dependencies, or auditing a lockfile. |
-| `http-security-headers` | Use when setting or reviewing security headers, CSP, or CORS policy. |
-| `prompt-injection-defense` | Use when an LLM reads untrusted content, or an agent acts on model decisions. |
+| `http-security-headers` | Use when setting or reviewing security headers, CSP or CORS. |
+| `prompt-injection-defense` | Use when an LLM reads untrusted content or acts on model output. |
 
 ## LLM and agent engineering
 
@@ -171,10 +173,10 @@ Building on language models, and writing, serving and dispatching agent skills.
 
 | Skill | Routes when |
 | --- | --- |
-| `llm-application-development` | Use when building on language models: retrieval, prompts, evaluation, tool calls. |
-| `mcp-server-authoring` | Use when building an MCP server or tool, or exposing capabilities to an agent. |
-| `writing-agent-skills` | Use when authoring or debugging an agent skill, or when triggers are wrong. |
-| `dispatching-parallel-agents` | Use when independent work could run concurrently, or splitting work across subagents. |
+| `llm-application-development` | Use when building on language models: retrieval, prompts, evaluation. |
+| `mcp-server-authoring` | Use when building an MCP server or tool, or agent capabilities. |
+| `writing-agent-skills` | Use when authoring or debugging an agent skill, or fixing triggers. |
+| `dispatching-parallel-agents` | Use when independent work could run concurrently, or split across subagents. |
 
 ## Cross-cutting correctness
 
@@ -182,7 +184,7 @@ The domains where defects hide best: logs and timestamps.
 
 | Skill | Routes when |
 | --- | --- |
-| `structured-logging-and-error-handling` | Use when adding logging, propagating errors, or redacting sensitive data. |
+| `structured-logging-and-error-handling` | Use when adding logging, propagating errors, or redacting secrets. |
 | `date-time-handling` | Use when working with dates, time zones, timestamps, or calendar arithmetic. |
 
 ## Checking your own work
@@ -191,8 +193,18 @@ Writing gates that can actually fail, and the shell primitives underneath them t
 
 | Skill | Routes when |
 | --- | --- |
-| `trustworthy-checks` | Use when writing a validator, gate, lint rule, or CI check, or when a check passes and you doubt it. |
-| `shell-and-text-tooling` | Use when writing shell scripts, grep/sed/awk pipelines, or tooling that scans files. |
+| `trustworthy-checks` | Use when writing a validator, gate, or CI check, or when a check passes and you doubt it. |
+| `shell-and-text-tooling` | Use when writing shell scripts, grep/sed/awk, or file-scanning tooling. |
+
+## Working within an agent's limits
+
+Spending a context window well, surviving compaction, and never stating anything you did not check.
+
+| Skill | Routes when |
+| --- | --- |
+| `token-and-context-budget` | Use when a task is large, or when deciding what to read, delegate or write. |
+| `context-window-management` | Use when work must survive compaction, or a long task loses coherence. |
+| `hallucination-defense` | Use when an agent may invent facts, drift from the request, or output must be grounded. |
 
 ---
 

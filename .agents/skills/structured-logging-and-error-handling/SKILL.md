@@ -1,6 +1,6 @@
 ---
 name: structured-logging-and-error-handling
-description: Use when adding logging, propagating errors, or redacting sensitive data.
+description: Use when adding logging, propagating errors, or redacting secrets.
 ---
 
 # Structured logging and error handling

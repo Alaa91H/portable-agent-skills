@@ -1,6 +1,6 @@
 ---
 name: graphql-api-security
-description: Use when exposing or reviewing a GraphQL API, or when it is slow or being abused.
+description: Use when exposing or reviewing a GraphQL API, or when it is abused.
 ---
 
 # GraphQL API security and performance

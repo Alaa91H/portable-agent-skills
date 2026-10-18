@@ -1,6 +1,6 @@
 ---
 name: kubernetes-deployment
-description: Use when writing or reviewing Kubernetes manifests, probes, limits, or rollouts.
+description: Use when writing or reviewing Kubernetes manifests or probes.
 ---
 
 # Kubernetes deployment

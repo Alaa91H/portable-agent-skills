@@ -1,6 +1,6 @@
 ---
 name: email-deliverability
-description: Use when sending email, configuring SPF, DKIM or DMARC, or when mail is being filtered.
+description: Use when sending email, or configuring SPF, DKIM, or DMARC records.
 ---
 
 # Email deliverability

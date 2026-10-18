@@ -1,6 +1,6 @@
 ---
 name: improving-codebase-architecture
-description: Use when reviewing codebase structure, duplication, or prioritising refactors.
+description: Use when reviewing codebase structure, duplication or refactor priority.
 ---
 
 # Improving codebase architecture

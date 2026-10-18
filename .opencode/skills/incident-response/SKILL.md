@@ -1,6 +1,6 @@
 ---
 name: incident-response
-description: Use when responding to a production incident, outage, or alert.
+description: Use when responding to a production incident, outage or alert.
 ---
 
 # Incident response

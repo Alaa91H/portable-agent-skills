@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when building an MCP server or tool, or exposing capabilities to an agent."
+description: "Use when building an MCP server or tool, or agent capabilities."
 ---
 
 

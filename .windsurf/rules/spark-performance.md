@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when a Spark job is slow, data skew is suspected, or joins misbehave."
+description: "Use when a Spark job is slow, data skew is suspected, or joins break."
 ---
 
 

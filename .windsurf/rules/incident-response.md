@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when responding to a production incident, outage, or alert."
+description: "Use when responding to a production incident, outage or alert."
 ---
 
 

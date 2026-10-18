@@ -1,6 +1,6 @@
 ---
 name: prompt-injection-defense
-description: Use when an LLM reads untrusted content, or an agent acts on model decisions.
+description: Use when an LLM reads untrusted content or acts on model output.
 ---
 
 # Prompt injection defense

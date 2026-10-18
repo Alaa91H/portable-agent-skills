@@ -1,0 +1,141 @@
+---
+description: "Use when work must survive compaction, or a long task loses coherence."
+alwaysApply: false
+---
+
+
+# Context window management
+
+## A window is not a bag, it is a spotlight
+
+A window is not storage with a limit; it is a fixed amount of attention. Three
+things follow, and they contradict each other, so they are worth stating
+separately.
+
+1. **Position matters.** Instructions and information at the very start and very
+   end of a window are attended to most. The same material in the middle is
+   attended to least. This is the single most reliable, least used fact about
+   long contexts.
+2. **Retrieval is lossy.** Pulling the right twenty lines out of a hundred
+   thousand is a probabilistic operation, not a database lookup.
+3. **Coherence degrades before the cap.** You will start contradicting yourself
+   long before you run out of tokens. The working size is well under the hard
+   limit.
+
+So "I have plenty of context left" is not the same as "I can still do this
+correctly", and the gap widens with task length.
+
+## Structure the window by phase
+
+Do not run one continuous conversation and hope. Give each phase its own framing,
+so the material for the current phase is salient and the rest is not competing.
+
+```
+[ invariants ]   the constraints that never change: conventions, constraints,
+                 what must not change. Small, and repeated.
+
+[ decisions ]   settled so far, with the reason. This is what compaction must
+                 not lose.
+
+[ current ]     the task in front of you, the files in play, the open question.
+
+[ next ]        what you are about to do, stated concretely.
+```
+
+`next` at the end matters more than it looks. A window that ends on "so, about
+the migration…" resumes far better than one that ends on a wall of evidence.
+
+## Compaction drops reasoning and keeps conclusions
+
+This is the asymmetry to design around. When a window is summarized, what
+survives is roughly: what was concluded, what files were touched, what remains
+open. What is lost is **the chain of reasoning that justified the conclusion**.
+
+The practical consequence: a conclusion carried across compaction is an
+assertion with no visible justification, and it will be re-litigated or, worse,
+trusted without checking. So every decision worth surviving must carry its
+reason with it, in a form that survives:
+
+```
+- Chose polling over SSE. Why: deployment target has no sticky routing, and SSE
+  needs it. Revisit if: routing config changes.
+```
+
+Without the `Why:` clause this is a verdict with no visible reasoning, and the
+next context has to re-derive it.
+
+## Make compaction a non-event
+
+Everything below is about the same idea: if the durable state is outside the
+window, losing the window costs nothing.
+
+- **Decisions and rejections in a file**, not in the conversation. See
+  `token-and-context-budget` for the shape that works.
+- **File paths and line numbers in prose**, so the next context does not re-search
+  for what it already found.
+- **Open questions stated as questions.** An open question is easy to resume; a
+  half-finished sentence is not.
+- **Verification results recorded** — "the suite passed at abc123", not "tests
+  pass", which is a claim the next context must re-establish.
+
+## Chunk long work deliberately
+
+A task that exceeds the window is not a task to attempt in one pass. Break it so
+that each chunk ends in a **committed state** rather than a partial one.
+
+The wrong chunking is by file or by topic: you read three of the eight modules,
+run out, and come back with none of them integrated.
+
+The right chunking is by **outcome**. Each pass finishes something checkable:
+one module changed and tested, one hypothesis tested, one migration written. Then
+the next pass starts from a state that is true rather than a state that is
+half-applied.
+
+## Position deliberately when you must hold a lot
+
+When the task genuinely requires breadth, order matters more than volume.
+
+- Put **invariants first**, so they are the most-attended material when a
+  judgement call comes up at the end.
+- Put **the current question last**, so it is the most recent thing in the window.
+- Put **evidence near the decision it supports**, not gathered in a block at the
+  top. Evidence separated from its claim decays and gets re-read.
+- Put **contradictions next to each other.** Two sources that disagree, placed
+  together, get resolved. Placed apart, one wins by recency and nobody notices.
+
+## Retrieve, do not dump
+
+Indexing your own context beats holding it. When the material is a large
+codebase, a set of documents, or a long log:
+
+1. **Build a compact index** — the file, what it is for, and one line on its
+  shape. Hundreds of entries, a few thousand tokens.
+2. **Query the index**, then open only what the answer names.
+3. **Keep the index in a file** so the next phase inherits it.
+
+The same shape serves long sessions: a table of what exists, a table of what was
+tried, a table of what is decided. Each is small, each is durable, and together
+they replace the narrative the window would otherwise have to carry.
+
+## Know when to restart
+
+Sometimes the right move is to abandon the window and start from the durable
+state. A session that has contradicted itself twice, or that is three phases into
+a task whose premises have changed, is producing worse work than a fresh start
+with a good notes file.
+
+The test is not length. It is whether you still trust the earlier material. When
+you would not act on your own conclusions from an hour ago without re-reading
+them, the window has stopped working for you.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "I still have plenty of context." | Coherence degrades long before the cap. Length is not capacity. |
+| "I will summarise the decision." | Compaction keeps conclusions and drops reasons. Carry the `Why:`. |
+| "Notes in context are fine." | They are in the thing that gets discarded. Put them in a file. |
+| "Position does not matter." | It matters more than volume does. End on the current question. |
+| "One continuous session is simpler." | It is simpler until it contradicts itself, then it is worse than nothing. |
+| "I will just read everything again." | That is the cost you were trying to avoid. Build the index instead. |
+| "Restarting loses work." | It loses what was in the window, which is the part you cannot verify anyway. |

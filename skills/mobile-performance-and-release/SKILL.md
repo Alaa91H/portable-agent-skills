@@ -1,6 +1,6 @@
 ---
 name: mobile-performance-and-release
-description: Use when a mobile app is slow to start, janky to scroll, or rejected by review.
+description: Use when a mobile app is slow to start, janky to scroll, or rejected.
 ---
 
 # Mobile performance and release

@@ -1,6 +1,6 @@
 ---
 name: refactoring-without-breaking-behaviour
-description: Use when restructuring code where existing tests must keep passing.
+description: Use when restructuring code where the existing tests must pass.
 ---
 
 # Refactoring without breaking behaviour

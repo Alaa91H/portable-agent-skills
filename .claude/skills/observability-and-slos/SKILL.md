@@ -1,6 +1,6 @@
 ---
 name: observability-and-slos
-description: Use when defining SLOs, error budgets, or setting up metrics, logging, and tracing.
+description: Use when defining SLOs, error budgets, or metrics, logging and tracing.
 ---
 
 # Observability and SLOs

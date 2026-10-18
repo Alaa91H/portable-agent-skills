@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when writing concurrent or async code, or diagnosing races, deadlocks, or blocking."
+description: "Use when writing concurrent code, or diagnosing races and deadlocks."
 ---
 
 

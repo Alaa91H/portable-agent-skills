@@ -1,5 +1,5 @@
 ---
-description: "Use when a requirement is ambiguous, or before tests, to pin down scope."
+description: "Use when a requirement is ambiguous, or before tests, to fix scope."
 ---
 
 

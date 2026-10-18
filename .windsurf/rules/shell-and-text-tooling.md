@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when writing shell scripts, grep/sed/awk pipelines, or tooling that scans files."
+description: "Use when writing shell scripts, grep/sed/awk, or file-scanning tooling."
 ---
 
 

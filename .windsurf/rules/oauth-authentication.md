@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when implementing login, token handling, sessions, or OAuth flows."
+description: "Use when implementing login, tokens, sessions, or OAuth flows."
 ---
 
 

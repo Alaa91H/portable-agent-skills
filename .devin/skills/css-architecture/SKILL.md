@@ -1,6 +1,6 @@
 ---
 name: css-architecture
-description: Use when setting up design tokens, growing a stylesheet, or choosing a styling approach.
+description: Use when setting up design tokens, growing a stylesheet or choosing styling.
 ---
 
 # CSS architecture

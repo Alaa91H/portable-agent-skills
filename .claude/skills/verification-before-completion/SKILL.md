@@ -1,6 +1,6 @@
 ---
 name: verification-before-completion
-description: Use when about to report work complete or fixed, or before committing.
+description: Use when about to report work complete, or before committing.
 ---
 
 # Verification before completion

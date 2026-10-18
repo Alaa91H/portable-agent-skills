@@ -1,6 +1,6 @@
 # Essential Agent Skills
 
-A curated, validated collection of **69 agent skills** covering the full arc of
+A curated, validated collection of **74 agent skills** covering the full arc of
 software work: deciding what to build, building it test-first, getting it
 reviewed, shipping it, running it, operating it, and writing skills of its own.
 
@@ -13,7 +13,7 @@ with any agent out of the box.
 git clone https://github.com/Alaa91H/portable-agent-skills.git && cd portable-agent-skills && ./install.sh
 ```
 
-Current release: **1.1.0** · 69 skills · 16 domains · 14 agents · MIT
+Current release: **1.1.0** · 74 skills · 17 domains · 14 agents · MIT
 
 Every day the [daily workflow](.github/workflows/daily.yml) re-verifies the
 collection, rebuilds the catalog, and watches the upstream specification for
@@ -464,6 +464,24 @@ produces a document serving nobody. Its central principle is to document the
 **decision**, not the code. Prefers executable documentation, mapping things
 people write down to things that should be generated or tested.
 
+**`codebase-decomposition`** — **File size is a symptom; the disease is unrelated
+reasons to change.** The real test is countable: how many distinct reasons are
+there to open this file in a year. It provides the command to count them, and the
+rule that a 900-line file with one reason to change is fine while a 200-line file
+with three is worse, because every unrelated edit risks a conflict. Then the
+distinction that actually decides the split: **group by change axis, not by noun**.
+`models/` and `services/` and `handlers/` scatter one feature across six folders;
+one directory per feature makes a change touch one path.
+
+**`up-to-date-tooling`** — The asymmetry you cannot reason your way out of: your
+knowledge has a cutoff and the world did not, and recall of a version-specific
+fact feels exactly like certainty. So the discipline is not knowing more, it is
+**checking instead of recalling** — a resolution order from the lockfile down to
+your own prior, which is always last and always labelled. Contains the dividing
+line: *if a wrong answer would compile or run, check it.* And the rule that
+prevents the worst outcome: **never widen a lockfile inside a bugfix**, because
+then no reviewer can tell which line broke it.
+
 ### Version control
 
 **`using-git-worktrees`** — When a second working directory is genuinely right and
@@ -798,6 +816,44 @@ contracts and decisions, because most lost work is two agents writing one file
 and the second write discarding the first. Requires explicit file ownership in
 the prompt.
 
+### Working within an agent's limits
+
+These three describe the constraints an agent works inside rather than the work
+it does. Most of what is written about agents assumes a larger context than
+exists, and most of what goes wrong in long sessions is a violation of one of
+these.
+
+**`token-and-context-budget`** — The framing that matters: **the expensive
+resource is attention, not tokens**, and relevance per token collapses long
+before the token cap is reached. So the question is never "how do I fit this" but
+"what is the smallest context that makes this decision correct". Its most concrete
+rule is **read narrowly, cite exactly** — `path:line` instead of a reproduction,
+which is cheaper, leaves room for reasoning, and is verifiable. On delegation: a
+subagent's entire value is its summary, so the summary *shape* is what you are
+paying for, and "look into the caching" is not a spec. And the number worth
+watching is **context consumed per decision made**.
+
+**`context-window-management`** — A window is not a bag, it is a spotlight. Three
+consequences that contradict each other and are therefore worth stating
+separately: **position matters** (the middle is attended to least), **retrieval
+is lossy**, and **coherence degrades before the cap** — which is why "I have
+plenty of context left" is not the same as "I can still do this correctly". The
+design rule that follows is **compaction keeps conclusions and drops reasons**, so
+a decision worth surviving must carry its `Why:` clause with it. Everything else
+in the skill is about making the durable state live in a file, so losing the
+window costs nothing.
+
+**`hallucination-defense`** — Splits the thing people treat as one problem into
+three with different defences: **hallucination** (invented fact), **confabulation**
+(invented citation, API or path), and **drift** (answering a nearby question).
+Drift is the one that gets missed, because the output is usually correct — just
+about the wrong thing, and correctness does not make it an answer. The root cause
+is that **uncertainty has no internal signal**, so "let me be more careful" cannot
+work and only structure does: a claim is **either sourced or labelled, with no
+third state**, and the label is never deleted to tidy the output. Includes the
+highest-risk content list (versions, paths, identifiers, measurements) and the
+rule that fixes it: *open the file, quote the lines you are changing, then edit*.
+
 ### Checking your own work
 
 These two came out of building this repository rather than from studying it, and
@@ -863,7 +919,7 @@ or `tools`, because a role does not tell an agent when to load anything.
 ## Repository layout
 
 ```text
-.opencode/skills/          canonical skill source, 69 skills
+.opencode/skills/          canonical skill source, 74 skills
 skills/ .claude/ .agents/ .github/ .cursor/ .devin/ .cline/    generated mirrors
 .cursor/rules/ .roo/rules/ .windsurf/rules/ .devin/rules/
 .cline/rules/ .trae/rules/                            generated on-demand rules

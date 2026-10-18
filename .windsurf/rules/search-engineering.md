@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when designing an Elasticsearch index, or tuning query relevance."
+description: "Use when designing an Elasticsearch index or tuning relevance."
 ---
 
 

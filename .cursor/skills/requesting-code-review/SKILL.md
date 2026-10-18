@@ -1,6 +1,6 @@
 ---
 name: requesting-code-review
-description: Use when finishing a feature or branch, before merging, to get it reviewed.
+description: Use when a feature or branch is ready, before merging, to get it reviewed.
 ---
 
 # Requesting code review

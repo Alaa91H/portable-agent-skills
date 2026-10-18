@@ -1,6 +1,6 @@
 ---
 name: orchestration-dag-authoring
-description: Use when writing or debugging Airflow, Dagster or Prefect pipelines.
+description: Use when writing or debugging Airflow, Dagster or Prefect DAGs.
 ---
 
 # Orchestration and DAG authoring

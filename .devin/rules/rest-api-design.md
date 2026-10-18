@@ -1,5 +1,5 @@
 ---
-description: "Use when designing or reviewing an HTTP API, its errors, pagination, or idempotency."
+description: "Use when designing or reviewing an HTTP API: errors, pagination, idempotency."
 ---
 
 

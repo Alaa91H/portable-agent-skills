@@ -1,5 +1,5 @@
 ---
-description: "Use when adding translations, handling plurals, or formatting dates and numbers."
+description: "Use when adding translations, plurals, or date and number formats."
 ---
 
 

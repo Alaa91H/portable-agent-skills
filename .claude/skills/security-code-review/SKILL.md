@@ -1,6 +1,6 @@
 ---
 name: security-code-review
-description: Use when reviewing code that handles untrusted input, auth, secrets, or file access.
+description: Use when reviewing code handling untrusted input, auth or secrets.
 ---
 
 # Security code review

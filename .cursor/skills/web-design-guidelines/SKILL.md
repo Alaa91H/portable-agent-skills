@@ -1,6 +1,6 @@
 ---
 name: web-design-guidelines
-description: Use when reviewing UI code against interface, accessibility, or UX guidelines.
+description: Use when reviewing UI code against interface, accessibility or UX.
 ---
 
 # Web design guidelines

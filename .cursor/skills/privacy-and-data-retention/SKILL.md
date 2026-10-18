@@ -1,6 +1,6 @@
 ---
 name: privacy-and-data-retention
-description: Use when handling personal data, deletion, or retention policy.
+description: Use when handling personal data, deletion or retention rules.
 ---
 
 # Privacy and data retention

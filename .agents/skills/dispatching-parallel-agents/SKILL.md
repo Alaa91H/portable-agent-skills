@@ -1,6 +1,6 @@
 ---
 name: dispatching-parallel-agents
-description: Use when independent work could run concurrently, or splitting work across subagents.
+description: Use when independent work could run concurrently, or split across subagents.
 ---
 
 # Dispatching parallel agents

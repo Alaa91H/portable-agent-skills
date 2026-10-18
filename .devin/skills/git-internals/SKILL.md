@@ -1,6 +1,6 @@
 ---
 name: git-internals
-description: Use when recovering lost work, bisecting a regression, or managing hooks and submodules.
+description: Use when recovering lost work, bisecting, or managing submodules.
 ---
 
 # Git internals

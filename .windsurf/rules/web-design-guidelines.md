@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when reviewing UI code against interface, accessibility, or UX guidelines."
+description: "Use when reviewing UI code against interface, accessibility or UX."
 ---
 
 

@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when verifying a web app in a real browser, or debugging a UI issue."
+description: "Use when verifying a web app in a browser, or debugging a UI issue."
 ---
 
 

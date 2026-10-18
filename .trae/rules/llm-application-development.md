@@ -1,5 +1,5 @@
 ---
-description: "Use when building on language models: retrieval, prompts, evaluation, tool calls."
+description: "Use when building on language models: retrieval, prompts, evaluation."
 ---
 
 

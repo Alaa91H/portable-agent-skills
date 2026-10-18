@@ -1,5 +1,5 @@
 ---
-description: "Use when designing a warehouse schema, or choosing a slowly changing dimension type."
+description: "Use when designing a warehouse schema, or a slowly changing dimension."
 ---
 
 

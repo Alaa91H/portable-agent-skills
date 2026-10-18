@@ -1,6 +1,6 @@
 ---
 name: http-security-headers
-description: Use when setting or reviewing security headers, CSP, or CORS policy.
+description: Use when setting or reviewing security headers, CSP or CORS.
 ---
 
 # HTTP security headers

@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when building or restyling a user interface, component, or page."
+description: "Use when building or restyling an interface, component or page."
 ---
 
 

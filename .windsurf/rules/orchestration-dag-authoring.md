@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when writing or debugging Airflow, Dagster or Prefect pipelines."
+description: "Use when writing or debugging Airflow, Dagster or Prefect DAGs."
 ---
 
 

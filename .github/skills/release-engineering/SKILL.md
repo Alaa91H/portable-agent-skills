@@ -1,6 +1,6 @@
 ---
 name: release-engineering
-description: Use when cutting a release, writing a changelog, or planning a rollback.
+description: Use when cutting a release, writing a changelog, or a rollback plan.
 ---
 
 # Release engineering

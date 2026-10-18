@@ -1,6 +1,6 @@
 ---
 name: planning-before-implementation
-description: Use when a task needs a plan, spec, or breakdown before any code is written.
+description: Use when a task needs a plan or breakdown before code is written.
 ---
 
 # Planning before implementation

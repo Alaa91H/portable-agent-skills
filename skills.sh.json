@@ -27,13 +27,15 @@
     },
     {
       "title": "Working in a codebase",
-      "description": "Orienting yourself, getting it running, and finding the model underneath the code.",
+      "description": "Orienting yourself, getting it running, keeping it current, and keeping its structure workable.",
       "skills": [
         "onboarding-unfamiliar-codebase",
         "environment-bootstrap",
         "domain-modeling",
         "improving-codebase-architecture",
-        "writing-technical-docs"
+        "writing-technical-docs",
+        "codebase-decomposition",
+        "up-to-date-tooling"
       ]
     },
     {
@@ -165,6 +167,15 @@
       "skills": [
         "trustworthy-checks",
         "shell-and-text-tooling"
+      ]
+    },
+    {
+      "title": "Working within an agent's limits",
+      "description": "Spending a context window well, surviving compaction, and never stating anything you did not check.",
+      "skills": [
+        "token-and-context-budget",
+        "context-window-management",
+        "hallucination-defense"
       ]
     }
   ]

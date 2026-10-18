@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when defining SLOs, error budgets, or setting up metrics, logging, and tracing."
+description: "Use when defining SLOs, error budgets, or metrics, logging and tracing."
 ---
 
 

@@ -1,6 +1,6 @@
 ---
 name: resolving-merge-conflicts
-description: Use when git reports a conflict, a rebase stops, or CONFLICT markers remain.
+description: Use when git reports a conflict, a rebase stops, or markers remain.
 ---
 
 # Resolving merge conflicts

@@ -1,5 +1,5 @@
 ---
-description: "Use when testing structured or invalid input, or when examples keep missing bugs."
+description: "Use when testing structured or invalid input, or examples miss bugs."
 ---
 
 

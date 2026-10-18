@@ -1,5 +1,5 @@
 ---
-description: "Use when sending or receiving webhooks, or verifying webhook signatures."
+description: "Use when sending or receiving webhooks, or verifying signatures."
 ---
 
 

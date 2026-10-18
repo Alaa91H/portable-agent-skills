@@ -1,6 +1,6 @@
 ---
 name: writing-acceptance-criteria
-description: Use when a requirement is ambiguous, or before tests, to pin down scope.
+description: Use when a requirement is ambiguous, or before tests, to fix scope.
 ---
 
 # Writing acceptance criteria

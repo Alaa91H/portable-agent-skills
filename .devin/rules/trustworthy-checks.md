@@ -1,5 +1,5 @@
 ---
-description: "Use when writing a validator, gate, lint rule, or CI check, or when a check passes and you doubt it."
+description: "Use when writing a validator, gate, or CI check, or when a check passes and you doubt it."
 ---
 
 

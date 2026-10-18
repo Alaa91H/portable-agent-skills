@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when a branch is ready to merge, hand off, or open a pull request."
+description: "Use when a branch is ready to merge, hand off, or open a PR."
 ---
 
 

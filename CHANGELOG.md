@@ -73,6 +73,36 @@ versioned, automated update path.
   each wrapper layer, and the measured difference between per-file subprocesses
   and batched ones.
 
+**Working within an agent's limits**
+
+- `token-and-context-budget` — spending a context window well. The framing is
+  that the binding resource is attention rather than tokens, so relevance per
+  token is what decays. Read narrowly and cite exactly, delegate only when the
+  work will not fit, and specify a subagent's return shape because its summary is
+  the entire value delivered.
+- `context-window-management` — surviving a window rather than spending one.
+  Position matters more than volume, retrieval is lossy, and coherence degrades
+  before the token cap, so length is not capacity. Compaction preserves
+  conclusions and drops reasons, which is why a decision worth surviving carries
+  its `Why:` clause, and why the durable state belongs in a file.
+- `hallucination-defense` — separating hallucination, confabulation and drift,
+  which share a name and need different defences. Drift is the one that survives
+  unnoticed because the answer is correct about a nearby question. The root
+  cause is that uncertainty produces no internal signal, so the defences are
+  structural: a claim is sourced or labelled, never silently neither.
+
+**Working in a codebase**
+
+- `codebase-decomposition` — file length is a symptom and unrelated reasons to
+  change is the disease, with a command to count them. Split by change axis
+  rather than by noun, prefer a narrow surface over a re-exporting barrel, and
+  treat `utils` as a question rather than a destination.
+- `up-to-date-tooling` — checking a version instead of recalling one, with a
+  fixed resolution order from the lockfile down to your own prior. Includes the
+  rule against widening a lockfile inside a bugfix, because that makes the diff
+  unreviewable, and the dividing line: if a wrong answer would compile or run,
+  check it.
+
 **Release and update mechanism**
 
 - `VERSION` and this changelog, with semantic versions covering the collection

@@ -1,5 +1,5 @@
 ---
-description: "Use when handling personal data, deletion, or retention policy."
+description: "Use when handling personal data, deletion or retention rules."
 alwaysApply: false
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: receiving-code-review
-description: Use when code-review comments arrive, especially when they conflict.
+description: Use when code-review comments arrive, or conflict with your work.
 ---
 
 # Receiving code review

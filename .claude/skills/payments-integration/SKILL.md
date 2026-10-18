@@ -1,6 +1,6 @@
 ---
 name: payments-integration
-description: Use when integrating a payment provider, or handling subscriptions or payment webhooks.
+description: Use when integrating a payment provider, subscriptions or webhooks.
 ---
 
 # Payments integration

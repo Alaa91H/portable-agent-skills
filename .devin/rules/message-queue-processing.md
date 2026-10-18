@@ -1,5 +1,5 @@
 ---
-description: "Use when writing or reviewing queue consumers, workers, or retries."
+description: "Use when writing queue consumers, workers, retries or dead letters."
 ---
 
 

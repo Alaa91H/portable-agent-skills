@@ -1,5 +1,5 @@
 ---
-description: "Use when a program is slow or memory grows, or when profiling CPU or allocations."
+description: "Use when a program is slow or memory grows, or when profiling CPU."
 ---
 
 

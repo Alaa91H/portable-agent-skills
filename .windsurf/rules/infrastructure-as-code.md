@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when writing Terraform or other infrastructure code, or diagnosing drift."
+description: "Use when writing Terraform or infrastructure code, or diagnosing drift."
 ---
 
 
