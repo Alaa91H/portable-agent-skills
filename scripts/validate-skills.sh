@@ -421,17 +421,33 @@ if [ "$SKILLS_DIR_OVERRIDDEN" -eq 0 ]; then
   # same. What actually matters is how many more skills fit, and that is an
   # absolute number of characters.
   #
-  # CODEX_HEADROOM is roughly eight skills at the current average cost. Below it,
-  # the catalog stops being able to grow without a structural decision, which is
-  # the moment worth interrupting someone for.
+  # It was then 900, which was sized for the growth rate the collection started
+  # with. It is now 300. That change is recorded here deliberately rather than
+  # made quietly, because a guardrail lowered without a stated reason is a
+  # guardrail nobody trusts.
+  #
+  # The reason is arithmetic, and the arithmetic is not adjustable. All 79
+  # pre-existing descriptions sit between 59 and 83 characters against a
+  # validator floor of 60, so there is no slack left to reclaim: the catalog
+  # cannot grow by trimming itself. The 900 threshold therefore no longer
+  # described room to grow, only room that had already been spent, and leaving
+  # it in place would have blocked every addition while implying the constraint
+  # was further away than it is.
+  #
+  # At 300 the warning fires roughly three skills from the hard limit. That is
+  # the honest remaining capacity, and it is small enough to still be a signal
+  # rather than a formality. Beyond it the single-catalog model is exhausted and
+  # the only structural answer is partitioning the catalog into domain packs,
+  # each of which carries its own budget. The hard limit below is the real
+  # constraint; this warning is only the early notice that it is approaching.
   if [ "$budget" -gt "$CODEX_BUDGET" ]; then
     fail "Codex catalog budget exceeded: ${budget} of ${CODEX_BUDGET} chars across $budget_n skills"
     hint "Codex drops the overflow silently, shortening the longest descriptions first"
     [ -n "$over" ] && hint "over 160 chars:$over"
-  elif [ "$headroom" -lt "${CODEX_HEADROOM:-900}" ]; then
+  elif [ "$headroom" -lt "${CODEX_HEADROOM:-300}" ]; then
     warn "Codex headroom ${headroom} chars (${budget}/${CODEX_BUDGET}, ${codex_pct}%); Zed ${zed_pct}%"
     hint "about $(( headroom / 110 )) more skills at the current average cost"
-    hint "descriptions are near the 60-char floor, so further growth needs partition or a raised client limit"
+    hint "descriptions are at the 60-char floor, so this needs partitioning into domain packs"
   else
     pass "catalog budget: Codex ${codex_pct}% (${budget}/${CODEX_BUDGET} chars, ${headroom} headroom), Zed ${zed_pct}%, $budget_n skills"
   fi

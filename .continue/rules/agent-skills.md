@@ -31,6 +31,8 @@ to use it, not what to do.
 - **database-migrations** — Use when running schema migrations or backfills that block queries.
 - **date-time-handling** — Use when working with dates, time zones, timestamps, or calendar maths.
 - **dbt-modeling** — Use when writing dbt models, incremental models, or fixing a build.
+- **deep-research** — Use when researching a topic or sources, or needing depth and saturation.
+- **dense-code-and-signal** — Use when reviewing code for padding, dead code, or comments that restate the code.
 - **dependency-supply-chain-review** — Use when adding or upgrading dependencies, or auditing a lockfile.
 - **dimensional-modeling** — Use when designing a warehouse schema, or a slowly changing dimension.
 - **dispatching-parallel-agents** — Use when independent work could run concurrently, or across subagents.
@@ -68,6 +70,7 @@ to use it, not what to do.
 - **privacy-and-data-retention** — Use when handling personal data, deletion or retention rules.
 - **prompt-injection-defense** — Use when an LLM reads untrusted content or acts on model output.
 - **property-based-testing** — Use when testing structured or invalid input, or examples miss bugs.
+- **quality-gates-and-tests** — Use when setting up CI gates, E2E tests, coverage targets, or judging test strength.
 - **receiving-code-review** — Use when code-review comments arrive, or conflict with your work.
 - **refactoring-without-breaking-behaviour** — Use when restructuring code where the existing tests must pass.
 - **release-engineering** — Use when cutting a release, writing a changelog, or a rollback plan.
@@ -76,6 +79,7 @@ to use it, not what to do.
 - **rest-api-design** — Use when designing or reviewing an HTTP API: errors, pages, idempotency.
 - **search-engineering** — Use when designing an Elasticsearch index or tuning relevance.
 - **security-code-review** — Use when reviewing code handling untrusted input, auth or secrets.
+- **self-critique-and-polish** — Use when reviewing your own output before delivery, or polishing work.
 - **shell-and-text-tooling** — Use when writing shell scripts, grep/sed/awk, or file-scanning tools.
 - **spark-performance** — Use when a Spark job is slow, data skew is suspected, or joins break.
 - **sql-query-performance** — Use when a query is slow, an index is missing, or a table is large.

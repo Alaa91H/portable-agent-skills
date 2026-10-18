@@ -452,7 +452,62 @@ if [ -f "$STATE" ] && git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
   fi
 fi
 
-# ------------------------------------------------------------------- summary
+# ------------------------------------------------- translations track the set
+  #
+  # The i18n gate is only useful if it fails for the reason it claims to check.
+  # It shipped once already and did not: every marker was updated when the
+  # collection grew, eighteen prose counts were not, and the gate passed. These
+  # cases plant each way it can go wrong and require the failure.
+  if [ -f "$ROOT/scripts/check-i18n.sh" ] && [ -f "$ROOT/docs/i18n/es.md" ]; then
+    es="$ROOT/docs/i18n/es.md"
+    ar="$ROOT/docs/i18n/ar.md"
+    cp "$es" "$TMP/es.keep"; cp "$ar" "$TMP/ar.keep"
+    heal_i18n() { cp "$TMP/es.keep" "$es"; cp "$TMP/ar.keep" "$ar"; }
+    trap heal_i18n EXIT
+
+    i18n_case() {
+      local name="$1" file="$2" needle="$3"
+      local out rc
+      out="$(cd "$ROOT" && bash scripts/check-i18n.sh 2>&1)"; rc=$?
+      if [ "$rc" != 0 ] && printf '%s' "$out" | grep -qF -- "$needle"; then
+        printf '  %sok%s    %s\n' "$GRN" "$RST" "$name"
+        passes=$((passes + 1))
+      else
+        printf '  %sFAIL%s  %-24s exit %s, output did not mention %s\n' "$RED" "$RST" "$name" "$rc" "$needle"
+        printf '%s\n' "$out" | sed 's/^/          /'
+        failures=$((failures + 1))
+      fi
+    }
+
+    # A stale count in the prose, with the marker left correct. This is the
+    # exact shape of the drift that got through. The delimiter is @ rather than
+    # the usual / because the text being matched is a markdown table row and
+    # every character you would reach for as a delimiter is already in it.
+    sed -i 's@| Habilidades | 83, en 18 dominios |@| Habilidades | 79, en 18 dominios |@' "$es"
+    i18n_case i18n-stale-prose-count "$es" 'prose states a count'
+    heal_i18n
+
+    # The same drift in Arabic-Indic digits, U+0667 U+0669 for 79. They are
+    # written as literals rather than as printf '\u0667' escapes, which expand
+    # under bash 5 but silently emit the backslash form under the Git Bash this
+    # suite runs in, and a substitution that matches nothing is not a test.
+    #
+    # Written as a single unsplit token the digit list does not word-split under
+    # Git Bash, so the checker's normalisation becomes a no-op and this case is
+    # what catches that going unnoticed.
+    sed -i 's/٨٣/٧٩/' "$ar"
+    i18n_case i18n-stale-arabic-count "$ar" 'prose states a count'
+    heal_i18n
+
+    # A translation nobody declared, which is drift in the other direction.
+    printf '# orphan\n' > "$ROOT/docs/i18n/it.md"
+    i18n_case i18n-undeclared-language "$ROOT/docs/i18n/it.md" 'not declared'
+    rm -f "$ROOT/docs/i18n/it.md"
+
+    trap heal_index EXIT
+  fi
+
+  # ------------------------------------------------------------------- summary
 printf '\n'
 if [ "$failures" -gt 0 ]; then
   printf '%s%d passed, %d failed%s\n' "$RED" "$passes" "$failures" "$RST"

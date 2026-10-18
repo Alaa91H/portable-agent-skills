@@ -1,8 +1,8 @@
 # Essential Agent Skills — Deutsch
 
-<!-- i18n: lang=de clusters=18 skills=79 -->
+<!-- i18n: lang=de clusters=18 skills=83 -->
 
-Eine kuratierte, validierte Sammlung von **79 Agent-Skills** für den gesamten
+Eine kuratierte, validierte Sammlung von **83 Agent-Skills** für den gesamten
 Bogen der Softwarearbeit: entscheiden, was gebaut wird, test-first bauen,
 reviewen lassen, ausliefern, betreiben — und eigene Skills schreiben.
 
@@ -20,7 +20,7 @@ cd portable-agent-skills && ./install.sh
 
 | | |
 | --- | --- |
-| Skills | 79, in 18 Domänen |
+| Skills | 83, in 18 Domänen |
 | Agenten | 14 verifizierte Installationsziele |
 | Format | einfaches Markdown, keine Abhängigkeiten |
 | Lizenz | MIT |
@@ -70,7 +70,7 @@ cd portable-agent-skills && ./install.sh
 ./install.sh claude --global     # Claude Code
 ./install.sh codex --global      # OpenAI Codex
 ./install.sh cursor --global     # Cursor
-./install.sh --list              # die 79 Kennungen anzeigen
+./install.sh --list              # die 83 Kennungen anzeigen
 ./install.sh --update            # neueste Version holen
 ```
 

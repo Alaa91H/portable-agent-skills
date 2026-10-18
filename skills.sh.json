@@ -6,6 +6,7 @@
       "title": "Craft and process",
       "description": "Deciding what to do, doing it test-first, and proving it works.",
       "skills": [
+        "dense-code-and-signal",
         "planning-before-implementation",
         "writing-acceptance-criteria",
         "test-driven-development",
@@ -18,6 +19,7 @@
       "title": "Testing and review",
       "description": "Getting work checked, acting on the feedback, and proving it under load.",
       "skills": [
+        "quality-gates-and-tests",
         "requesting-code-review",
         "receiving-code-review",
         "property-based-testing",
@@ -166,6 +168,7 @@
       "title": "Checking your own work",
       "description": "Writing gates that can actually fail, and the shell primitives underneath them that quietly do not.",
       "skills": [
+        "self-critique-and-polish",
         "trustworthy-checks",
         "shell-and-text-tooling"
       ]
@@ -183,6 +186,7 @@
       "title": "Producing trustworthy output",
       "description": "The last mile: what goes into an answer, how it is sourced, and how to catch text that stopped working.",
       "skills": [
+        "deep-research",
         "evidence-first-writing",
         "long-form-integrity",
         "arabic-news-briefing",

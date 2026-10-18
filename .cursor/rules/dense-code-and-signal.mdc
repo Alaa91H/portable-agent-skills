@@ -1,0 +1,121 @@
+---
+description: "Use when reviewing code for padding, dead code, or comments that restate the code."
+alwaysApply: false
+---
+
+
+# Dense code and signal
+
+## The request this skill answers
+
+Strip padding: comments that inflate the line count, code that is never executed,
+old experiments, defensive branches for cases that cannot happen, abstractions
+that wrap nothing. Leave only the code.
+
+That goal is right, and one common reading of it is wrong in a way that damages
+the codebase. **The target is not "no comments".** The target is *no comments that
+restate the code*. Those two rules are opposites, and applying the wrong one
+produces code that is harder to change than the bloated version it replaced.
+
+## The distinction that carries the whole skill
+
+```
+Delete:  a comment that repeats what the code says.
+          // increment i by 1
+          i++
+
+Keep:    a comment that records something the code cannot say.
+          // Off-by-one here is load-bearing: the caller relies on the
+          // sentinel being returned rather than thrown. See issue #4471.
+```
+
+A comment earns its place only if deleting it would lose information. Test it by
+covering the code: if the comment is still true and still needed, it stays. If
+the rest of the code explains it, it goes.
+
+The failure mode is asymmetric and worth naming. A redundant comment costs a
+line to maintain and misleads nobody much. A deleted comment explaining a
+non-obvious invariant looks like obvious code to the next reader, who changes
+it, and breaks the invariant silently. **The first is a cost; the second is an
+outage.** Aggressive deletion without judgement trades a visible annoyance for
+an invisible failure.
+
+Comment *why*, not *what*. "Why" cannot be recovered from the code; "what" always can.
+
+## What to delete
+
+| Pattern | Why it goes |
+| --- | --- |
+| Comment restating the next line | The code says it, and says it more accurately |
+| Commented-out code | Not executed, not tested, and rots faster than code because nobody notices when it becomes wrong |
+| Debug logging left behind | Costs a reader nothing to skip, costs production a lot |
+| Unused imports, variables, parameters | No runtime meaning, constant review noise |
+| Unreachable branches after an early return | Signals confusion about control flow |
+| Dead feature flag with no callers | Looks live to everyone reading it |
+| Wrapper that only forwards | An extra name to hold in your head for zero abstraction |
+| Helper called exactly once, naming nothing | Indirection with no payoff |
+| `if (x == true)` | Says less than `if (x)` and occupies the same space |
+| Defensive branch for an impossible case | Untestable, therefore unverified, therefore a lie of safety |
+
+The single most common find in a real review is a helper used once. It was
+extracted to "keep the function short", and the function it came from was fine.
+Extraction has a cost — a name to invent, a place to jump to — and it only pays
+back when the same logic appears again.
+
+## What to keep, and stop deleting
+
+- The comment that explains **why** an apparently wrong line exists
+- The invariant a caller must not break
+- The reason a constant has its value, when the value is not derivable
+- The workaround and its reference, so it is not "cleaned up" later
+- Tests, including the ones that look obvious
+- Error messages, which are code for the person who will read them at 3am
+
+If you find yourself deleting the last comment in a function, that is a signal,
+not a win. Ask whether the function's *shape* is what made it need explaining.
+A function with five branches and a subtle ordering usually wants a redesign, not
+a deletion.
+
+## Measure density, do not eyeball it
+
+Line count is not the measure. A 200-line function of dense logic and a 60-line
+function with four comment blocks can have the same signal density, and the
+second is often clearer.
+
+What is worth counting:
+
+```
+unused symbols        functions, imports, variables with no reference
+comment-to-code ratio comments that add information, not comments total
+abstraction depth     call-stack layers between the caller and the real work
+branch coverage       paths that exist but are never taken
+```
+
+The number that catches the most real waste is **abstraction depth**: how many
+hops it takes to reach the code that does the thing. Depth three means every
+debug session pays a tax.
+
+## The removal order
+
+Deletion in the wrong order wastes effort, because polishing prose around dead
+code produces beautifully written dead code.
+
+1. Remove what is not executed.
+2. Remove what restates code.
+3. Remove indirection that names nothing.
+4. Collapse duplicated branches that differ only in a constant.
+5. Merge near-identical functions whose parameters differ only by name.
+6. Then reassess. Often the code is now short enough that the comment was never
+   needed.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "Comments are noise." | Restating the code is noise. Recording the decision is not. |
+| "It is self-explanatory." | Self-explanatory means nobody had to write down the invariant. Who decided that? |
+| "This branch can never happen." | Then delete it or assert it. Untestable safety is not safety. |
+| "The helper improves readability." | Name what it names. If nothing, it is an extra hop. |
+| "I will add a comment to explain it." | Then the code was unclear, not the comment. |
+| "Removing lines makes it better." | Removing *signal-free* lines makes it better. Removing the rest makes it fragile. |
+| "Coverage is 100%, so it is all used." | Coverage is execution, not intent. A defensive branch can be fully covered and still unreachable in reality. |

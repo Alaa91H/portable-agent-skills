@@ -1,0 +1,116 @@
+---
+trigger: model_decision
+description: "Use when reviewing your own output before delivery, or polishing work."
+---
+
+
+# Self-critique and polish
+
+## Criticism has to be adversarial or it is theatre
+
+The most dangerous version of this is the one where you re-read your own work,
+find it agreeable, and describe the process as review. That is not review, it is
+reading with an opinion already formed, and it produces nothing.
+
+Self-criticism is real only when it has **an attempt to break the work**. Read it
+as the reviewer who wants to reject it, not as the author who wants to sign it.
+
+Three questions that reliably find defects, because each attacks a different way
+the work is wrong:
+
+| Question | What it catches |
+| --- | --- |
+| What input makes this wrong? | The case you did not consider |
+| What did I claim, and where is the evidence? | Overstatement and unverified assumption |
+| If I wrote this, what would I object to? | The parts that read as padding |
+
+The third is the useful one. It is the discomfort signal, and the parts of a piece
+of work you would hesitate to defend are usually the parts that are weakest.
+
+## Review the artifact, not the intention
+
+Self-review fails most often by reviewing what you *meant* rather than what is
+there. The file on disk is the artifact. Open it, read it, and evaluate that.
+
+```
+Intention:  "handle empty input in the parser"
+Artifact:   if (input) { return parse(input) }    // parse('') throws
+Review of the intention:  looks fine
+Review of the artifact:   the empty case is not handled
+```
+
+## Polishing has a order, and most of it is deletion
+
+Polishing is usually imagined as addition. It is mostly removal, and the removals
+come in a specific order because each one makes the next one visible:
+
+1. **Delete what is not executed.** Dead code, unreachable branches, unused
+   imports, commented-out blocks, debug logging left in.
+2. **Delete what restates the code.** A comment explaining what the next line does
+   is a maintenance cost with no informational return.
+3. **Delete the abstraction that wraps nothing.** A helper called once, for one
+   line, that names nothing the caller did not already know.
+4. **Merge the duplicated branch.** Two paths doing the same thing, differing
+   only in a constant.
+5. **Then, and only then, add.** The one place a comment earns its place is a
+   decision the code cannot express.
+
+Doing them in the other order wastes effort: polishing prose around dead code
+produces beautifully written dead code.
+
+## The self-repair loop
+
+Continuous improvement is not "polish again", it is a loop with an exit
+condition. Without one it either runs forever or stops arbitrarily.
+
+```
+deliver → read the result as a hostile reviewer → name defects → fix the
+         worst one → repeat until no named defect remains → stop
+```
+
+Two properties make it work rather than spin:
+
+- **Name the defect before fixing it.** A loop that "improves" without naming what
+  was wrong cannot tell whether it helped, and will happily undo itself next pass.
+- **Stop when the named defects run out**, not when the text looks good. Good
+  looking is not a signal.
+
+## Distinguish polish from correctness
+
+They get confused, and polishing something broken is wasted effort that delays the
+fix while making the bug more convincing.
+
+```
+Correctness:  does it do the right thing?
+Polish:       is it written the clearest way it can be?
+```
+
+Fix correctness first, always. A clean, well-named, beautifully formatted
+implementation of the wrong behaviour is harder to spot and harder to replace
+than a rough one, because the polish reads as reassurance.
+
+## Know when to stop
+
+Polish has a cost, and the cost is paid by the next person who has to change the
+code. Every extra abstraction, every defensive branch for a case that cannot
+happen, every named intermediate variable is a thing they must read past.
+
+The stopping condition is not "it looks finished". It is:
+
+- no named defects remain from an adversarial read
+- anything a future maintainer would need to know is written down
+- nothing remains that a reader must work around rather than through
+
+Past that point, further polishing is preference, and preference has a budget.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "Let me re-read it." | Re-reading is not criticism unless you are trying to break it. |
+| "The comments explain things." | Restating the code is a cost with no return. Explain the decision. |
+| "This is defensive programming." | A branch for an impossible case is a branch nobody can test. |
+| "The helper makes it readable." | A helper used once that names nothing adds an indirection. |
+| "It needs more polish." | Say which line, and what wrong about it. Otherwise it is taste. |
+| "I will keep improving it." | Without a named defect you cannot tell improvement from churn. |
+| "It is readable, so it is correct." | Readability is not a property of correctness. |

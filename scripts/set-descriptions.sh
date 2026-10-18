@@ -43,6 +43,10 @@ dependency-supply-chain-review|Use when adding or upgrading dependencies, or aud
 dimensional-modeling|Use when designing a warehouse schema, or a slowly changing dimension.
 dispatching-parallel-agents|Use when independent work could run concurrently, or across subagents.
 docker-containerization|Use when writing a Dockerfile, or debugging image size, cache or signals.
+self-critique-and-polish|Use when reviewing your own output before delivery, or polishing work.
+deep-research|Use when researching a topic or sources, or needing depth and saturation.
+dense-code-and-signal|Use when reviewing code for padding, dead code, or comments that restate the code.
+quality-gates-and-tests|Use when setting up CI gates, E2E tests, coverage targets, or judging test strength.
 domain-modeling|Use when identifying domain concepts, business rules, or unclear terms.
 evidence-first-writing|Use when an answer states a fact, figure, link, or claim about others.
 email-deliverability|Use when sending email, or configuring SPF, DKIM or DMARC records.

@@ -1,8 +1,8 @@
 # Essential Agent Skills — 日本語
 
-<!-- i18n: lang=ja clusters=18 skills=79 -->
+<!-- i18n: lang=ja clusters=18 skills=83 -->
 
-ソフトウェア開発の全工程を覆う、**検証済みのエージェントスキル 79 個**の
+ソフトウェア開発の全工程を覆う、**検証済みのエージェントスキル 83 個**の
 コレクションです。何を作るかを決め、テストファーストで実装し、レビューを受け、
 リリースし、運用し、そして自前のスキルを書くことまでを対象にします。
 
@@ -20,7 +20,7 @@ cd portable-agent-skills && ./install.sh
 
 | | |
 | --- | --- |
-| スキル | 79 個、18 の領域 |
+| スキル | 83 個、18 の領域 |
 | エージェント | 検証済みのインストール先 14 件 |
 | 形式 | 素の Markdown、依存なし |
 | ライセンス | MIT |
@@ -70,7 +70,7 @@ cd portable-agent-skills && ./install.sh
 ./install.sh claude --global     # Claude Code
 ./install.sh codex --global      # OpenAI Codex
 ./install.sh cursor --global     # Cursor
-./install.sh --list              # 79 個の識別子を表示
+./install.sh --list              # 83 個の識別子を表示
 ./install.sh --update            # 最新版を取得
 ```
 

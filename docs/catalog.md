@@ -10,7 +10,7 @@ The routing sentence is the skill's exact `description`. Changing it changes whe
 the agent reaches for the skill, so treat it as reviewed surface rather than
 incidental wording.
 
-79 skills, grouped by cluster.
+83 skills, grouped by cluster.
 
 
 ## Craft and process
@@ -19,6 +19,7 @@ Deciding what to do, doing it test-first, and proving it works.
 
 | Skill | Routes when |
 | --- | --- |
+| `dense-code-and-signal` | Use when reviewing code for padding, dead code, or comments that restate the code. |
 | `planning-before-implementation` | Use when a task needs a plan or breakdown before code is written. |
 | `writing-acceptance-criteria` | Use when a requirement is ambiguous, or before tests, to fix scope. |
 | `test-driven-development` | Use when adding or changing a feature or bugfix that needs tests. |
@@ -32,6 +33,7 @@ Getting work checked, acting on the feedback, and proving it under load.
 
 | Skill | Routes when |
 | --- | --- |
+| `quality-gates-and-tests` | Use when setting up CI gates, E2E tests, coverage targets, or judging test strength. |
 | `requesting-code-review` | Use when a feature or branch is ready, before merging, for review. |
 | `receiving-code-review` | Use when code-review comments arrive, or conflict with your work. |
 | `property-based-testing` | Use when testing structured or invalid input, or examples miss bugs. |
@@ -194,6 +196,7 @@ Writing gates that can actually fail, and the shell primitives underneath them t
 
 | Skill | Routes when |
 | --- | --- |
+| `self-critique-and-polish` | Use when reviewing your own output before delivery, or polishing work. |
 | `trustworthy-checks` | Use when writing a validator, gate, or CI check, or one passes suspiciously. |
 | `shell-and-text-tooling` | Use when writing shell scripts, grep/sed/awk, or file-scanning tools. |
 
@@ -213,6 +216,7 @@ The last mile: what goes into an answer, how it is sourced, and how to catch tex
 
 | Skill | Routes when |
 | --- | --- |
+| `deep-research` | Use when researching a topic or sources, or needing depth and saturation. |
 | `evidence-first-writing` | Use when an answer states a fact, figure, link, or claim about others. |
 | `long-form-integrity` | Use when finishing a long generated answer, report, digest or write-up. |
 | `arabic-news-briefing` | Use when writing an Arabic news briefing, daily digest, or round-up. |
