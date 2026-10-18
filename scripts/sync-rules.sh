@@ -32,7 +32,13 @@ SRC=".opencode/skills"
 ON_DEMAND=".cursor/rules:mdc .roo/rules:md .windsurf/rules:md .devin/rules:md .cline/rules:md .trae/rules:md"
 
 # Agents that always load every rule. These get a single pointer file.
-INDEX_FILES=".clinerules/agent-skills.md:.continue/rules/agent-skills.md:.goose/agent-skills.md:.rules/agent-skills.md:.amazonq/rules/agent-skills.md:.augment/rules/agent-skills.md"
+# Space separated, not colon separated. The loop splits on whitespace only, so a
+# colon-joined list arrives as ONE word: the six index mirrors were never written
+# by this loop at all, and the check was comparing a single path that does not
+# exist. On Windows the redirection to that nonexistent path failed quietly and
+# the gate passed; on Linux it reported the failure. Six files that agents read
+# on every session were effectively unguarded.
+INDEX_FILES=".clinerules/agent-skills.md .continue/rules/agent-skills.md .goose/agent-skills.md .rules/agent-skills.md .amazonq/rules/agent-skills.md .augment/rules/agent-skills.md"
 
 # Root-level files some agents read without a directory.
 ROOT_INDEX_FILES=".cursorrules AGENTS.md GEMINI.md CONVENTIONS.md CLAUDE.md AmazonQ.md TABNINE.md"
@@ -94,7 +100,18 @@ emit() {
   local path="$1"
   shift
   local tmp="$path.tmp.$$"
-  "$@" > "$tmp"
+
+  # A write that fails must stop the run. Without this, a redirect to a path
+  # whose directory does not exist fails, the status is discarded, and the
+  # script continues as if the file had been written. On Windows that failure
+  # was invisible; on Linux it surfaced as a gate failure. Either way the six
+  # index mirrors this function is responsible for were never created, while the
+  # documentation claimed support for five agents that read them.
+  if ! "$@" > "$tmp"; then
+    printf '  %serror%s   could not write %s (is its directory present?)\n' "$RED" "$RST" "$tmp" >&2
+    rm -f "$tmp"
+    return 2
+  fi
 
   if [ -f "$path" ] && cmp -s "$tmp" "$path"; then
     rm -f "$tmp"
@@ -202,7 +219,7 @@ EOF
 }
 
 for entry in $INDEX_FILES; do
-  emit "$entry" build_index
+  emit "$entry" build_index || exit $?
 done
 
 # Root-level files that agents read without a rules directory.
