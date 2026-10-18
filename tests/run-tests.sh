@@ -33,6 +33,22 @@ passes=0
 failures=0
 SDIR=""
 
+# annotate <title> <detail>
+#
+# Emits a GitHub Actions error annotation for every failing case. Log output on
+# a public repository is not readable without authentication, so a red run tells
+# you that something broke and nothing about what. Annotations are served by the
+# check-runs API without authentication, which makes a failure diagnosable by
+# anyone, including by the maintainer from a session with no token.
+#
+# Outside CI this is a no-op, so the suite stays runnable by hand.
+annotate() {
+  [ -n "${GITHUB_ACTIONS:-}" ] || return 0
+  local detail
+  detail="$(printf '%s' "$2" | head -c 900 | tr '\r\n' '  ')"
+  printf '::error file=%s,title=%s::%s\n' "${TEST_FILE:-tests/run-tests.sh}" "$1" "$detail"
+}
+
 # run_case <name> <skill-id> <expect-exit> <message-fragment> [setup] [post]
 #
 # Stages the SKILL.md read from stdin at <tmp>/<name>/<skill-id>/SKILL.md and
@@ -55,6 +71,7 @@ run_case() {
   if [ "$rc" != "$expect_exit" ]; then
     printf '  %sFAIL%s  %-24s expected exit %s, got %s\n' "$RED" "$RST" "$case_name" "$expect_exit" "$rc"
     printf '%s\n' "$out" | sed 's/^/          /'
+    annotate "$case_name" "expected exit $expect_exit, got $rc"$'\n'"$out"
     failures=$((failures + 1))
     return
   fi
@@ -62,6 +79,7 @@ run_case() {
   if [ -n "$pattern" ] && ! printf '%s\n' "$out" | grep -qF -- "$pattern"; then
     printf '  %sFAIL%s  %-24s missing message: %s\n' "$RED" "$RST" "$case_name" "$pattern"
     printf '%s\n' "$out" | sed 's/^/          /'
+    annotate "$case_name" "missing message: $pattern"$'\n'"$out"
     failures=$((failures + 1))
     return
   fi
@@ -475,6 +493,7 @@ fi
       else
         printf '  %sFAIL%s  %-24s exit %s, output did not mention %s\n' "$RED" "$RST" "$name" "$rc" "$needle"
         printf '%s\n' "$out" | sed 's/^/          /'
+        annotate "$name" "exit $rc, output did not mention $needle"$'\n'"$out"
         failures=$((failures + 1))
       fi
     }
@@ -534,6 +553,7 @@ fi
       else
         printf '  %sFAIL%s  %-24s exit %s, output did not mention %s\n' "$RED" "$RST" "$name" "$rc" "$needle"
         printf '%s\n' "$out" | sed 's/^/          /'
+        annotate "$name" "exit $rc, output did not mention $needle"$'\n'"$out"
         failures=$((failures + 1))
       fi
     }
@@ -569,6 +589,7 @@ fi
 printf '\n'
 if [ "$failures" -gt 0 ]; then
   printf '%s%d passed, %d failed%s\n' "$RED" "$passes" "$failures" "$RST"
+  annotate "regression suite" "$failures of $((passes + failures)) cases failed"
   exit 1
 fi
 printf '%sall %d cases passed%s\n' "$GRN" "$passes" "$RST"
