@@ -359,50 +359,97 @@ if [ -n "$NORMALIZE" ] && [ -x "$NORMALIZE" ] || [ -n "$NORMALIZE" ]; then
   fi
 fi
 
-# ------------------------------------------------- published metadata drift
+# ------------------------------------------------- repository state checks
 #
-# The Claude plugin marketplace is published but written by hand, so nothing
-# regenerated it and nothing compared it to a source of truth. It sat at version
-# 1.0.0 advertising 23 skills while the collection was at 1.1.0 with 69, and the
-# only reason it surfaced is that publishing was imminent.
+# Both of these run scripts/check-repo-state.sh, which answers in well under a
+# second, rather than the whole validator, which takes minutes. That is not a
+# convenience: the earlier version of this suite ran the full validator five
+# times and took nineteen minutes, which is long enough that the checks stop
+# being run locally, and they had already been broken.
 #
-# Both directions are pinned. A check that only ever passes cannot be told from
-# a check that is not looking, so the drift is planted deliberately.
-MARKETPLACE="$ROOT/.claude-plugin/marketplace.json"
+# Every fixture is written to a temporary directory and passed in by path, so
+# nothing here touches the repository. The one exception is the executable bit,
+# which is a property of the git index and cannot be faked. That one is made
+# self-healing instead: it resets the index before it starts and again when it
+# finishes, so a run killed mid-case leaves the next one with a known-good
+# baseline. An interrupted test that corrupts the checkout is worse than the
+# failure it was testing for.
+STATE="$ROOT/scripts/check-repo-state.sh"
 
-if [ -f "$MARKETPLACE" ]; then
-  mp_backup="$(mktemp)"
-  cp "$MARKETPLACE" "$mp_backup"
-  trap 'cp "$mp_backup" "$MARKETPLACE"; rm -f "$mp_backup"' RETURN
-
-  mp_assert() {
-    local label="$1" expect="$2"
-    local out rc
-    out="$(cd "$ROOT" && bash "$VALIDATOR" 2>&1)"; rc=$?
-    if [ "$rc" = "$expect" ]; then
+if [ -f "$STATE" ]; then
+  # assert_state <label> <expected-exit> <pattern-that-must-be-present>
+  assert_state() {
+    local label="$1" want="$2" pattern="$3" out rc
+    out="$(cd "$ROOT" && bash "$STATE" 2>&1)"; rc=$?
+    if [ "$rc" = "$want" ] && printf '%s' "$out" | grep -q "$pattern"; then
       printf '  %sok%s    %s\n' "$GRN" "$RST" "$label"
       passes=$((passes + 1))
     else
-      printf '  %sFAIL%s  %-24s expected exit %s, got %s\n' "$RED" "$RST" "$label" "$expect" "$rc"
-      printf '%s\n' "$out" | grep -i marketplace | sed 's/^/          /'
+      printf '  %sFAIL%s  %-24s exit %s (want %s)\n' "$RED" "$RST" "$label" "$rc" "$want"
+      printf '%s\n' "$out" | sed 's/^/          /' | head -n 6
       failures=$((failures + 1))
     fi
   }
 
-  mp_assert marketplace-clean-by-default 0
+  fx="$TMP/repo-state"
+  mkdir -p "$fx/.opencode/skills/alpha" "$fx/.opencode/skills/beta"
+  pad_a="$(printf 'a%.0s' $(seq 1 62))"
+  pad_b="$(printf 'b%.0s' $(seq 1 62))"
+  printf -- '---\nname: alpha\ndescription: %s\n---\n' "$pad_a" > "$fx/.opencode/skills/alpha/SKILL.md"
+  printf -- '---\nname: beta\ndescription: %s\n---\n'  "$pad_b" > "$fx/.opencode/skills/beta/SKILL.md"
+  printf '2.0.0\n' > "$fx/VERSION"
 
-  # Plant the exact drift that was found: a stale version.
-  sed -i 's/"version": *"[^"]*"/"version": "0.0.1-stale"/' "$MARKETPLACE"
-  mp_assert marketplace-version-drift 1
+  # write_marketplace <count> <version>
+  write_marketplace() {
+    printf '{"name":"m","metadata":{"description":"%s validated skills","version":"%s"}}\n' \
+      "$1" "$2" > "$fx/marketplace.json"
+  }
 
-  # And a stale count, which is the one that rots quietly, because it is prose.
-  cp "$mp_backup" "$MARKETPLACE"
-  sed -i 's/"description": *"[0-9][0-9]* /"description": "3 /' "$MARKETPLACE"
-  mp_assert marketplace-count-drift 1
+  # Point the check at the fixture tree for every assertion below. Exporting once
+  # is clearer than passing them per call, and the executable-bit check is off
+  # because the fixture is not the repository and has no git index to inspect.
+  export MARKETPLACE="$fx/marketplace.json"
+  export VERSION_FILE="$fx/VERSION"
+  export SKILLS_DIR="$fx/.opencode/skills"
+  export CHECK_EXEC=0
 
-  cp "$mp_backup" "$MARKETPLACE"
-  rm -f "$mp_backup"
-  trap - RETURN
+  # clean fixture: version matches, count matches
+  write_marketplace 2 2.0.0
+  assert_state state-clean 0 'marketplace version matches VERSION (2.0.0)'
+
+  # stale version, which is what shipped here for two releases
+  write_marketplace 2 1.0.0
+  assert_state state-version-drift 1 'but VERSION is 2.0.0'
+
+  # stale count, the one that rots quietly because it is prose
+  write_marketplace 3 2.0.0
+  assert_state state-count-drift 1 'advertises 3 skills but 2 are present'
+
+  # Back to the real repository, which is the fact CI actually depends on.
+  unset MARKETPLACE VERSION_FILE SKILLS_DIR CHECK_EXEC
+  assert_state repository-clean 0 'committed as executable'
+fi
+
+# ------------------------------------------------ executable bit on the index
+#
+# This one cannot be faked with a fixture, because it is a property of the git
+# index. It resets before and after so an interrupted run heals.
+if [ -f "$STATE" ] && git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
+  heal_index() { git -C "$ROOT" update-index --chmod=+x install.sh >/dev/null 2>&1; }
+  trap heal_index EXIT
+  heal_index
+
+  git -C "$ROOT" update-index --chmod=-x install.sh
+  out="$(cd "$ROOT" && bash "$STATE" 2>&1)"; rc=$?
+  heal_index
+
+  if [ "$rc" != 0 ] && printf '%s' "$out" | grep -q 'not committed as executable'; then
+    printf '  %sok%s    %s\n' "$GRN" "$RST" exec-bit-drift-detected
+    passes=$((passes + 1))
+  else
+    printf '  %sFAIL%s  %-24s stripping the bit was not reported (exit %s)\n' "$RED" "$RST" "$rc"
+    failures=$((failures + 1))
+  fi
 fi
 
 # ------------------------------------------------------------------- summary

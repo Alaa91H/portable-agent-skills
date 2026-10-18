@@ -144,6 +144,9 @@ Added by the repository owner, written directly on GitHub and merged in.
 - `dist/update-manifest.json` — a small, stable manifest carrying the collection
   version, the catalog cache key, a content digest and a build timestamp, so a
   poller can detect a change without parsing the catalog.
+- `scripts/check-repo-state.sh` — the marketplace manifest and the executable bit
+  on tracked scripts, with every path overridable so a test can point it at a
+  fixture. Answers in under a second.
 
 ### Changed
 
@@ -163,14 +166,27 @@ Added by the repository owner, written directly on GitHub and merged in.
 
 ### Fixed
 
-- **The CRLF detector could not detect CRLF.** `grep -q $'\r'` never matches,
-  because grep consumes the trailing carriage return as part of the pattern's own
-  line terminator, leaving an empty pattern that matches nothing. Every
-  `normalize.sh --check` run in this project's history reported "everything is
-  already normalized" because it was incapable of finding anything. The gate was
-  believed, which is exactly what makes a silently broken gate dangerous. The
-  replacement is `grep -qU $'\r'`, and the regression suite now plants a CRLF file
-  and asserts that it is found.
+- **Every CI run failed at its first step, on every branch.** All 1,136 files were
+  committed as mode `100644`, and the workflows invoke `scripts/foo.sh` directly,
+  which on a POSIX host exits 126 with "Permission denied". The repository is
+  authored on Windows, where `core.fileMode` is false and the filesystem has no
+  executable bit, so git recorded `100644` for everything and nothing failed
+  locally. A defect that exists only on the platform you are not developing on is
+  invisible to the person best placed to fix it, and it is now checked by the
+  validator rather than discovered by CI.
+- `check-repo-state.sh` read the manifest version with a line-anchored pattern,
+  so the check depended on the file being pretty-printed. Reformatting the
+  manifest would have broken a check that has nothing to do with formatting, and
+  the regression fixture caught it by writing compact JSON.
+- The catalog budget guardrail changed from a flat 85 percent to an absolute
+  headroom. A percentage reserve shrinks in absolute terms as the collection
+  grows, even though what is being protected, room to add more skills, is a fixed
+  number of characters.
+- The marketplace drift and executable-bit checks moved out of
+  `validate-skills.sh` into `scripts/check-repo-state.sh`. Inline checks can only
+  be exercised by running the whole validator against the whole collection, which
+  took minutes per assertion; the suite that resulted took nineteen minutes and is
+  the reason the checks it covers were slow to notice as broken.
 - Two illustrative script paths in `background-jobs-and-scheduling` and
   `git-internals` referenced files that do not exist. The validator rejects
   references to missing files precisely because an example that looks real but is
