@@ -11,6 +11,7 @@
 #   ./install.sh opencode --global      # all skills into the user's OpenCode
 #   ./install.sh claude --only sql-query-performance
 #   ./install.sh --list                 # show skill ids
+#   ./install.sh --update               # pull the newest source and refresh mirrors
 #
 # Options:
 #   --global        install into the user-level directory (all projects)
@@ -19,11 +20,14 @@
 #   --dest <path>   explicit destination, overriding any target table
 #   --uninstall     remove a previously installed copy
 #   --list          print every available skill id and exit
+#   --update        update the source from origin, then continue with the rest
+#   --version       print the collection version and exit
 #   -h, --help      this message
 
 set -uo pipefail
 
-SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.opencode/skills"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SRC="$ROOT/.opencode/skills"
 
 AGENT=""
 SCOPE="local"
@@ -31,16 +35,19 @@ ONLY=""
 DEST=""
 UNINSTALL=0
 LIST=0
+UPDATE=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    -h|--help) sed -n '2,22p' "$0" | sed 's/^#\{1,\} \{0,\\}//'; exit 0 ;;
+    -h|--help) sed -n '2,25p' "$0" | sed 's/^#*  *//'; exit 0 ;;
     --list) LIST=1; shift ;;
     --global) SCOPE="global"; shift ;;
     --local) SCOPE="local"; shift ;;
     --only) ONLY="$2"; shift 2 ;;
     --dest) DEST="$2"; shift 2 ;;
     --uninstall) UNINSTALL=1; shift ;;
+    --update) UPDATE=1; shift ;;
+    --version) if [ -f "$ROOT/VERSION" ]; then tr -d '[:space:]' < "$ROOT/VERSION"; else echo unknown; fi; echo; exit 0 ;;
     -*) printf 'unknown option: %s\n' "$1" >&2; exit 2 ;;
     *) AGENT="$1"; shift ;;
   esac
@@ -53,6 +60,55 @@ else
 fi
 
 die() { printf '%serror:%s %s\n' "$RED" "$RST" "$*" >&2; exit 1; }
+
+# ------------------------------------------------------------------ update
+#
+# Refresh the source in place. Nothing is regenerated here, and that is a
+# deliberate architectural choice rather than an omission: every mirror in this
+# repository is a committed artifact produced by CI and gated by a --check test.
+# A pull therefore brings the regenerated mirrors with it, and regenerating
+# again locally would duplicate work the project's contract already assigns to
+# CI while risking a half-refreshed tree that no longer matches the commit.
+#
+# What this does instead of regenerating: pull, then report exactly what
+# changed, because "updated" is not useful to a caller that has to restart an
+# agent anyway.
+if [ "$UPDATE" -eq 1 ]; then
+  was="$( [ -f "$ROOT/VERSION" ] && tr -d '[:space:]' < "$ROOT/VERSION" || echo none )"
+  had_count="$(find "$SRC" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')"
+  before="$( [ -f "$ROOT/VERSION" ] && cat "$ROOT/VERSION" || echo none )"
+
+  if git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
+    if git -C "$ROOT" pull --ff-only --quiet 2>/dev/null; then
+      printf 'source updated to %s\n' "$(git -C "$ROOT" rev-parse --short HEAD)"
+    elif git -C "$ROOT" remote get-url origin >/dev/null 2>&1; then
+      printf '%ssource not updated: the checkout has local commits, or origin is unreachable%s\n' "$YEL" "$RST"
+      printf 'continuing with the version already present\n'
+    else
+      printf '%sthis checkout has no origin configured%s\n' "$YEL" "$RST"
+      printf 'add one with: git remote add origin <url>\n'
+    fi
+  else
+    printf '%sthis copy is not a git checkout; install from a release archive to update%s\n' "$YEL" "$RST"
+  fi
+
+  now="$( [ -f "$ROOT/VERSION" ] && tr -d '[:space:]' < "$ROOT/VERSION" || echo none )"
+  has_count="$(find "$SRC" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')"
+
+  if [ "$before" = "$now" ] && [ "$had_count" = "$has_count" ]; then
+    printf 'already current: version %s, %s skill(s)\n' "$now" "$has_count"
+  else
+    [ "$before" = "$now" ] || printf 'version %s -> %s\n' "$before" "$now"
+    [ "$had_count" = "$has_count" ] || printf 'skill count %s -> %s\n' "$had_count" "$has_count"
+    if [ -f "$ROOT/CHANGELOG.md" ]; then
+      printf 'what changed in %s:\n' "$now"
+      sed -n "/^## \[$now\]/,/^## \[/{/^## \[$now\]/d; /^## \[/d; p;}" "$ROOT/CHANGELOG.md" \
+        | grep -E '^### |^- \*\*' | head -n 24 | sed 's/^/  /'
+    fi
+  fi
+
+  [ -n "$AGENT" ] || [ -n "$DEST" ] || exit 0
+fi
 
 # name | human label | local path | global path
 #
@@ -183,6 +239,8 @@ if [ "$UNINSTALL" -eq 1 ]; then
   printf '\n%sremoved %d skill(s) from %s%s\n' "$YEL" "$count" "$target" "$RST"
 else
   printf '\n%sinstalled %d skill(s) to %s%s\n' "$GRN" "$count" "$target" "$RST"
+  [ -f "$ROOT/VERSION" ] && printf 'collection version %s\n' "$(tr -d '[:space:]' < "$ROOT/VERSION")"
   printf 'Restart your agent to pick them up.\n'
+  printf 'Later: %s./install.sh --update %s%s --global   to refresh and reinstall\n' "$DIM" "$AGENT" "$RST"
 fi
 exit 0

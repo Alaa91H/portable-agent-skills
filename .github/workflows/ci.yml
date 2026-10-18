@@ -43,3 +43,10 @@ jobs:
           test "$count" -eq "$expected"
           # level-1 progressive disclosure needs a description per entry
           grep -c '"description"' dist/index.json | grep -qx "$expected"
+
+      - name: Report the upstream specification fingerprint
+        # Informational, and deliberately not a gate. A changed upstream
+        # specification is not a defect in this repository, and failing CI for it
+        # would mean the signal gets ignored. The daily workflow opens an issue.
+        continue-on-error: true
+        run: scripts/check-upstream.sh --status

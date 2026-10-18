@@ -1,0 +1,108 @@
+name: release
+
+# A tag is the only trigger. The tag is what consumers pin to, so the release
+# must be a pure function of a commit that already passed CI on main; nothing
+# here rebuilds content, it only publishes what that commit contains.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write   # create the release and upload assets
+
+jobs:
+  publish:
+    name: Publish the tagged collection
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # the changelog section and the version check need history
+
+      - name: Reject a tag that does not match VERSION
+        # The single most common release mistake: bump VERSION, tag something
+        # else. Catching it here means it never reaches a consumer.
+        run: |
+          tagged="${GITHUB_REF_NAME#v}"
+          declared="$(tr -d '[:space:]' < VERSION)"
+          echo "tag: $tagged, VERSION: $declared"
+          if [ "$tagged" != "$declared" ]; then
+            echo "::error::tag v$tagged does not match VERSION ($declared)"
+            exit 1
+          fi
+
+      - name: Confirm the tag is on main
+        # A tag on a side branch publishes a collection nobody validated against
+        # the main CI run, which is the second most common release mistake.
+        run: |
+          git fetch origin main --quiet
+          if ! git merge-base --is-ancestor "$GITHUB_REF_NAME" origin/main; then
+            echo "::error::v${GITHUB_REF_NAME} is not reachable from main"
+            exit 1
+          fi
+          echo "tag is on main"
+
+      - name: Re-run every gate
+        # CI already ran these, but a release must not depend on a previous run
+        # still being green: that run may predate the tag commit entirely.
+        run: |
+          scripts/normalize.sh --check
+          scripts/set-descriptions.sh --check
+          scripts/validate-skills.sh --strict
+          scripts/sync-agents.sh --check
+          scripts/sync-rules.sh --check
+          scripts/build-catalog-doc.sh --check
+          tests/run-tests.sh
+
+      - name: Require release notes for this version
+        # A release with no notes is the same as an unannounced breaking change.
+        run: |
+          version="$(tr -d '[:space:]' < VERSION)"
+          if ! grep -q "^## \[$version\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no section for $version"
+            exit 1
+          fi
+
+      - name: Build the catalog
+        run: scripts/build-catalog.sh
+
+      - name: Package the canonical source
+        run: |
+          mkdir -p out
+          tar -czf "out/skills-${GITHUB_REF_NAME}.tar.gz" \
+            --transform 's|^\.opencode/skills|skills|' \
+            .opencode/skills
+          cd out && sha256sum *.tar.gz > SHA256SUMS
+
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="$(tr -d '[:space:]' < VERSION)"
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file <(awk -v v="$version" '
+              $0 == "## [" v "]" { printing = 1; next }
+              printing && /^## \[/   { exit }
+              printing               { print }
+            ' CHANGELOG.md) \
+            out/skills-*.tar.gz \
+            out/SHA256SUMS \
+          gh release upload "$GITHUB_REF_NAME" dist/index.json dist/update-manifest.json \
+            --clobber
+
+      - name: Summarise what was published
+        run: |
+          {
+            echo "## Published artifact"
+            echo
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Version | $(tr -d '[:space:]' < VERSION) |"
+            echo "| Tag | \`$GITHUB_REF_NAME\` |"
+            echo "| Commit | \`$(git rev-parse --short HEAD)\` |"
+            echo "| Skills | $(jq -r '.skillCount' dist/update-manifest.json) |"
+            echo "| Content digest | \`$(jq -r '.digest' dist/update-manifest.json)\` |"
+            echo "| Catalog key | \`$(jq -r '.catalogVersion' dist/update-manifest.json)\` |"
+          } >> "$GITHUB_STEP_SUMMARY"

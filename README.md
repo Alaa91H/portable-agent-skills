@@ -13,12 +13,20 @@ with any agent out of the box.
 git clone <this-repo> && cd <this-repo> && ./install.sh
 ```
 
+Current release: **1.1.0** · 67 skills · 15 domains · 14 agents · MIT
+
+Every day the [daily workflow](.github/workflows/daily.yml) re-verifies the
+collection, rebuilds the catalog, and watches the upstream specification for
+drift. Every release carries English notes in
+[`CHANGELOG.md`](CHANGELOG.md); see [Keeping it current](#keeping-it-current).
+
 ---
 
 ## Contents
 
 - [Why this collection exists](#why-this-collection-exists)
 - [Quick start](#quick-start)
+- [Keeping it current](#keeping-it-current)
 - [Supported agents and protocols](#supported-agents-and-protocols)
 - [How discovery works](#how-discovery-works)
 - [The collection](#the-collection)
@@ -120,6 +128,111 @@ Validate against the open specification:
 ```sh
 skills-ref validate .opencode/skills/systematic-debugging
 ```
+
+---
+
+## Keeping it current
+
+A collection that stops updating stops being a reference. Three mechanisms keep
+this one current, and each answers a different question: what changed, how do I
+get it, and has the ground moved underneath us?
+
+### What changed
+
+Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and
+are recorded in [`VERSION`](VERSION). Notes are in
+[`CHANGELOG.md`](CHANGELOG.md), in
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
+
+A version covers the **collection**, not the tooling separately. Adding a skill,
+rewording a routing sentence, and changing the validator are all the same kind
+of event to a consumer, because all three change which skills reach them.
+
+Cut a release with:
+
+```sh
+scripts/release.sh 1.2.0            # run every gate, then commit and tag
+scripts/release.sh 1.2.0 --dry-run  # run every gate, change nothing
+```
+
+The script refuses to cut a release unless all seven gates pass and
+`CHANGELOG.md` already has a section for the version. A tag can therefore never
+point at a collection that does not validate.
+
+The release workflow publishes on the tag, and re-checks two things that are the
+most common release mistakes:
+
+- **the tag matches `VERSION`**, so you cannot bump one and tag the other;
+- **the tag is reachable from `main`**, so a side branch cannot publish a
+  collection that never passed CI on main.
+
+It then attaches a signed tarball of the canonical source, its SHA-256 sums, the
+catalog, and a machine-readable update manifest.
+
+### How to get it
+
+For a checkout, the update is one command:
+
+```sh
+./install.sh --update                 # refresh the source, report what changed
+./install.sh --update opencode --global   # refresh, then reinstall
+```
+
+`--update` pulls from `origin`, then reports the version transition, any change in
+skill count, and the new release notes pulled from the changelog. It deliberately
+does **not** regenerate the mirrors: every mirror in this repository is a
+committed artifact produced by CI and gated by a `--check` test, so a pull
+already brings the regenerated ones with it.
+
+For anything that wants to poll rather than pull, the rolling release keeps a
+single stable URL. `update-manifest.json` is small and stable, so a poller can
+cache it cheaply and re-fetch only when something changed:
+
+```json
+{
+  "collectionVersion": "1.1.0",
+  "catalogVersion": 7,
+  "commit": "7e7eb76",
+  "builtAt": "2026-10-18T03:57:06Z",
+  "skillCount": 67,
+  "digest": "13c5cdfbee097757",
+  "index": "index.json"
+}
+```
+
+Two version numbers appear there deliberately, and conflating them is a real
+bug. `collectionVersion` is the product version and changes only when a release is
+cut. `catalogVersion` is a **cache key** that changes whenever any file changes,
+because hosts key their catalog cache on it — using the semver alone would serve
+a stale catalog after every skill edit that did not come with a release, which
+is most of them.
+
+### Has the ground moved
+
+Every day the [`daily`](.github/workflows/daily.yml) workflow runs three jobs:
+verification, a rolling catalog build, and a check for drift in the upstream
+[Agent Skills specification](https://agentskills.io/specification).
+
+That last one is the reason this repository fingerprints its upstream. A
+collection is only as conformant as the specification it was written to, and
+that specification can change underneath it. Learning months later from a failing
+validator is the worst way to find out, because every skill in the collection may
+already be non-conformant at the same moment. The fingerprint is a hash of the
+specification body, so the check is cheap and cannot report a false positive from
+formatting.
+
+Drift opens an issue. It does not fail the build, and it should not: nothing is
+broken, and a check that cries wolf gets ignored.
+
+```sh
+scripts/check-upstream.sh            # report drift, change nothing
+scripts/check-upstream.sh --accept   # record the current fingerprint
+scripts/check-upstream.sh --status   # print what is on record
+```
+
+Read the specification diff before accepting a new fingerprint. The fingerprint is
+what stops the check reporting again, so accepting it early silences the signal
+permanently.
 
 ---
 
@@ -721,7 +834,7 @@ or `tools`, because a role does not tell an agent when to load anything.
 ## Repository layout
 
 ```text
-.opencode/skills/          canonical skill source, 59 skills
+.opencode/skills/          canonical skill source, 67 skills
 skills/ .claude/ .agents/ .github/ .cursor/ .devin/ .cline/    generated mirrors
 .cursor/rules/ .roo/rules/ .windsurf/rules/ .devin/rules/
 .cline/rules/ .trae/rules/                            generated on-demand rules
@@ -731,6 +844,8 @@ AGENTS.md  GEMINI.md  CLAUDE.md  CONVENTIONS.md  .cursorrules
 
 dist/                       generated HTTP catalog with descriptions
 
+VERSION  CHANGELOG.md       release version and English release notes
+spec/upstream.sha256        fingerprint of the specification this collection targets
 docs/authoring.md           the contract every skill follows
 docs/catalog.md             generated: all skills, routing sentences, provenance
 agents.json                 machine-readable agent and protocol support matrix
@@ -743,9 +858,11 @@ scripts/normalize.sh        strip UTF-8 BOM, force LF
 scripts/set-descriptions.sh canonical routing sentences for every skill
 scripts/sync-agents.sh      mirror the source to every skill discovery root
 scripts/sync-rules.sh       generate flat rule files for non-spec agents
-scripts/build-catalog.sh    build dist/index.json
+scripts/build-catalog.sh    build dist/index.json and the update manifest
 scripts/build-catalog-doc.sh generate docs/catalog.md
-tests/run-tests.sh          17-case regression suite for the validator
+scripts/check-upstream.sh   detect upstream specification drift
+scripts/release.sh          cut a release behind every gate
+tests/run-tests.sh          23-case regression suite for the validator
 install.sh                  install into any of 14 agents, local or global
 ```
 
@@ -765,8 +882,12 @@ scripts/sync-agents.sh --check  # CI gate for drift, compares content not names
 scripts/sync-rules.sh           # regenerate flat rule files
 scripts/build-catalog.sh        # build dist/ for remote agents
 scripts/build-catalog-doc.sh    # regenerate docs/catalog.md
+scripts/check-upstream.sh       # detect drift in the Agent Skills specification
+scripts/check-upstream.sh --accept
+scripts/release.sh 1.2.0        # cut a release: run every gate, then tag
 tests/run-tests.sh              # regression-test the validator itself
 install.sh                      # install into any agent
+install.sh --update             # pull the newest source and report what changed
 ```
 
 The validator enforces the portable specification rather than any single agent's
@@ -789,6 +910,10 @@ description to `scripts/set-descriptions.sh`, assign it to a cluster in
 `skills.sh.json`, then run the generators. CI runs normalisation, description
 conformance, validation, both sync gates, the documentation gate, the regression
 suite and a catalog build.
+
+If the change ships, add a section for the new version to `CHANGELOG.md` and bump
+`VERSION`. `scripts/release.sh` refuses to tag a version that has no notes,
+because a release without release notes is an unannounced breaking change.
 
 ---
 

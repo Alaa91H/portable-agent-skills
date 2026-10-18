@@ -24,10 +24,22 @@ if [ ! -d "$SRC" ]; then
   exit 2
 fi
 
-# The catalog cache is keyed on `version`, so it must change whenever any file
-# changes. The commit count is a cheap, monotonic proxy that needs no tagging.
-VERSION="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
-[ "$VERSION" -ge 1 ] 2>/dev/null || VERSION=1
+# Two different numbers, for two different jobs. Conflating them is a real bug
+# and it is easy to conflate them, because both are called "version".
+#
+#   catalog version   a cache key. Hosts key their cache on this, so it must
+#                     change whenever ANY file changes. The commit count is a
+#                     cheap monotonic proxy that needs no tagging.
+#   collection version the product version from ./VERSION, which changes only
+#                     when a human decides to cut a release.
+#
+# Using the semver alone for the cache key would silently serve a stale catalog
+# after every skill edit that did not come with a release, which is most of them.
+CATALOG_VERSION="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
+[ "$CATALOG_VERSION" -ge 1 ] 2>/dev/null || CATALOG_VERSION=1
+COLLECTION_VERSION="$(tr -d '[:space:]' < VERSION 2>/dev/null || echo 0.0.0)"
+COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
+BUILT_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 rm -rf "$OUT"
 mkdir -p "$OUT"
@@ -78,7 +90,8 @@ EOF
   entries+="
     {
       \"name\": \"$name\",
-      \"version\": \"$VERSION\",
+      \"version\": \"$CATALOG_VERSION\",
+      \"collectionVersion\": \"$COLLECTION_VERSION\",
       \"description\": \"$desc\",
       \"files\": [$file_json]
     }"
@@ -87,11 +100,44 @@ EOF
   printf '  %-40s %s files\n' "$name" "$(printf '%s\n' "$files" | grep -c '')"
 done
 
+# A content digest over every published file, so a client can tell "newer" from
+# "different" without downloading the catalog. It is computed over paths and
+# contents together, because a renamed file with identical contents is a change
+# a consumer must see.
+DIGEST="$(find "$SRC" -type f -name '*.md' -print0 \
+  | LC_ALL=C sort -z \
+  | xargs -0 sha256sum 2>/dev/null \
+  | sha256sum 2>/dev/null | cut -c1-16)"
+[ -n "$DIGEST" ] || DIGEST="unavailable"
+
 {
   printf '{\n'
+  printf '  "collectionVersion": "%s",\n' "$COLLECTION_VERSION"
+  printf '  "catalogVersion": %s,\n' "$CATALOG_VERSION"
+  printf '  "commit": "%s",\n' "$COMMIT"
+  printf '  "builtAt": "%s",\n' "$BUILT_AT"
+  printf '  "skillCount": %d,\n' "$count"
+  printf '  "digest": "%s",\n' "$DIGEST"
   printf '  "skills": [%s\n' "$entries"
   printf '  ]\n'
   printf '}\n'
 } > "$OUT/index.json"
 
-printf '\nbuilt %d skill(s) into %s (version %s)\n' "$count" "$OUT" "$VERSION"
+# A standalone manifest for anything that wants to poll for updates without
+# parsing the catalog. It stays small and stable, so a poller can cache it
+# cheaply and re-fetch only when the digest changes.
+{
+  printf '{\n'
+  printf '  "collectionVersion": "%s",\n' "$COLLECTION_VERSION"
+  printf '  "catalogVersion": %s,\n' "$CATALOG_VERSION"
+  printf '  "commit": "%s",\n' "$COMMIT"
+  printf '  "builtAt": "%s",\n' "$BUILT_AT"
+  printf '  "skillCount": %d,\n' "$count"
+  printf '  "digest": "%s",\n' "$DIGEST"
+  printf '  "index": "index.json"\n'
+  printf '}\n'
+} > "$OUT/update-manifest.json"
+
+printf '\nbuilt %d skill(s) into %s\n' "$count" "$OUT"
+printf '  collection %s, catalog key %s, commit %s\n' "$COLLECTION_VERSION" "$CATALOG_VERSION" "$COMMIT"
+printf '  digest %s\n' "$DIGEST"

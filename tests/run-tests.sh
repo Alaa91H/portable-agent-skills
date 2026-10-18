@@ -266,6 +266,99 @@ else
   failures=$((failures + 1))
 fi
 
+# ------------------------------------------------------- encoding detectors
+#
+# A gate that always passes is worse than no gate, because it is believed. These
+# two cases exist because scripts/normalize.sh claimed for the entire life of the
+# project to detect CRLF while being structurally unable to detect anything:
+#
+#   grep -q $'\r'    never matches, because the trailing CR is eaten as part of
+#                    the pattern's own line terminator
+#   grep -q $'\r\n'  matches everything, because a newline in the pattern splits
+#                    it and the empty remainder matches any file
+#
+# Both failed silently, so nothing caught it. These plant the defects and assert
+# detection, which is the only reason the detector can now be trusted.
+NORMALIZE="$ROOT/scripts/normalize.sh"
+[ -f "$NORMALIZE" ] || NORMALIZE=""
+
+if [ -n "$NORMALIZE" ] && [ -x "$NORMALIZE" ] || [ -n "$NORMALIZE" ]; then
+  enc="$TMP/encoding"
+  mkdir -p "$enc"
+  printf 'a\r\nb\r\n' > "$enc/crlf.md"          # CRLF only, no BOM
+  printf 'a\nb\n'     > "$enc/lf.md"            # clean LF
+  printf '\357\273\277a\n' > "$enc/bom.md"      # BOM only
+  printf 'a\r\nb\r\n' > "$enc/both.md"          # both
+  printf '\000\001\015\012\377' > "$enc/blob.bin"  # binary containing CRLF
+
+  check_case() {
+    local name="$1" expect_hit="$2" file="$3" got
+    if LC_ALL=C grep -qU $'\r' "$file" 2>/dev/null; then got=yes; else got=no; fi
+    if [ "$got" = "$expect_hit" ]; then
+      printf '  %sok%s    %s\n' "$GRN" "$RST" "$name"
+      passes=$((passes + 1))
+    else
+      printf '  %sFAIL%s  %-24s expected %s, got %s\n' "$RED" "$RST" "$name" "$expect_hit" "$got"
+      failures=$((failures + 1))
+    fi
+  }
+
+  check_case crlf-detected        yes "$enc/crlf.md"
+  check_case lf-not-false-positive no "$enc/lf.md"
+  check_case binary-cr-detected   yes "$enc/blob.bin"
+
+  # The BOM detector, which is a byte comparison rather than a grep and so has a
+  # different failure mode: an off-by-one in the length being compared.
+  bom_detected=no
+  [ "$(head -c 3 "$enc/bom.md"  | od -An -tx1 | tr -d ' \n')" = "efbbbf" ] && bom_detected=yes
+  bom_clean=no
+  [ "$(head -c 3 "$enc/lf.md"   | od -An -tx1 | tr -d ' \n')" = "efbbbf" ] && bom_clean=yes
+  if [ "$bom_detected" = yes ] && [ "$bom_clean" = no ]; then
+    printf '  %sok%s    %s\n' "$GRN" "$RST" bom-detected
+    passes=$((passes + 1))
+  else
+    printf '  %sFAIL%s  %-24s bom=%s clean=%s\n' "$RED" "$RST" "$bom_detected" "$bom_clean"
+    failures=$((failures + 1))
+  fi
+
+  # End to end: the script itself must report the planted CRLF file and, just as
+  # importantly, must not claim the whole tree needs normalizing when it does not.
+  #
+  # The fixture has to live inside the repository, because that is the only tree
+  # the script scans. It is removed immediately after, and a trap covers the case
+  # where the assertion exits early, so a failing run cannot leave a defective
+  # file behind for the next one to trip over.
+  fixture="$ROOT/.normalize-fixture.tmp"
+  printf 'a\r\nb\r\n' > "$fixture"
+  trap 'rm -f "$fixture"' RETURN
+
+  enc_out="$(cd "$ROOT" && bash "$NORMALIZE" --check 2>&1)"
+  rm -f "$fixture"
+  trap - RETURN
+
+  if printf '%s' "$enc_out" | grep -q 'need normalizing'; then
+    printf '  %sok%s    %s\n' "$GRN" "$RST" normalize-detects-planted-crlf
+    passes=$((passes + 1))
+  else
+    printf '  %sFAIL%s  %-24s --check did not report a planted CRLF file\n' "$RED" "$RST" normalize-detects-planted-crlf
+    failures=$((failures + 1))
+  fi
+
+  # And the converse, which is the case that actually burned us: a clean tree
+  # must come back clean. A detector that reports every file as broken is not a
+  # working detector either, and it is just as dangerous because the obvious
+  # response is to normalise the whole tree.
+  clean_out="$(cd "$ROOT" && bash "$NORMALIZE" --check 2>&1)"
+  if printf '%s' "$clean_out" | grep -q 'everything is already normalized'; then
+    printf '  %sok%s    %s\n' "$GRN" "$RST" normalize-clean-tree-not-flagged
+    passes=$((passes + 1))
+  else
+    printf '  %sFAIL%s  %-24s a clean tree was reported as needing normalization\n' "$RED" "$RST" normalize-clean-tree-not-flagged
+    printf '%s\n' "$clean_out" | tail -n 5 | sed 's/^/          /'
+    failures=$((failures + 1))
+  fi
+fi
+
 # ------------------------------------------------------------------- summary
 printf '\n'
 if [ "$failures" -gt 0 ]; then

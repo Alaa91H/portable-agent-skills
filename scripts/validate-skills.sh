@@ -23,7 +23,7 @@ STRICT=0
 for arg in "$@"; do
   case "$arg" in
     --strict) STRICT=1 ;;
-    -h|--help) sed -n '2,17p' "$0" | sed 's/^#\{1,\} \{0,\\}//'; exit 0 ;;
+    -h|--help) sed -n '2,17p' "$0" | sed 's/^#*  *//'; exit 0 ;;
     *) printf 'unknown argument: %s\n' "$arg" >&2; exit 2 ;;
   esac
 done

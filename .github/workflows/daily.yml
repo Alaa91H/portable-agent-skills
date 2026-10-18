@@ -1,0 +1,173 @@
+name: daily
+
+# Three jobs with one shared purpose: keep a distributed collection honest
+# without a human having to remember.
+#
+#   verify    prove the collection still validates on main, every day
+#   publish   keep a rolling artifact that anything can poll for freshness
+#   spec      notice when the upstream specification changes underneath us
+#
+# The split matters. Verification failing is a code problem and should page
+# someone. The upstream specification changing is not a failure at all, and
+# treating it as one trains people to ignore this workflow.
+
+on:
+  schedule:
+    # 04:17 UTC daily. Deliberately not on the hour: every scheduled workflow in
+    # the world fires at :00, and GitHub delays the queue at that moment.
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Daily verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Every gate
+        run: |
+          scripts/normalize.sh --check
+          scripts/set-descriptions.sh --check
+          scripts/validate-skills.sh --strict
+          scripts/sync-agents.sh --check
+          scripts/sync-rules.sh --check
+          scripts/build-catalog-doc.sh --check
+          tests/run-tests.sh
+
+      - name: Report the catalog budget
+        # The budget is the binding constraint on collection size, so its trend
+        # is a design signal rather than a number to look up on demand.
+        run: |
+          budget=$(scripts/validate-skills.sh 2>&1 | grep -o 'Codex catalog budget at [0-9]*%' || true)
+          echo "$budget" >> "$GITHUB_STEP_SUMMARY"
+          echo "$budget"
+
+  publish:
+    name: Publish the rolling catalog
+    runs-on: ubuntu-latest
+    needs: verify
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # the catalog cache key is derived from the commit count
+
+      - name: Build the catalog
+        run: scripts/build-catalog.sh
+
+      - name: Update the rolling release
+        # A moving 'latest' tag gives consumers one stable URL to poll. The
+        # alternative, requiring them to discover the newest version tag, pushes
+        # the update problem onto every consumer separately.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          date -u +%Y-%m-%dT%H:%M:%SZ > dist/BUILT_AT
+          if gh release view latest >/dev/null 2>&1; then
+            gh release upload latest dist/index.json dist/update-manifest.json dist/BUILT_AT --clobber
+          else
+            gh release create latest --title "latest" \
+              --notes "Rolling build, replaced daily. Poll \`update-manifest.json\` and compare \`digest\`." \
+              dist/index.json dist/update-manifest.json dist/BUILT_AT
+          fi
+
+      - name: Publish the current catalog into the step summary
+        run: |
+          {
+            echo "## Rolling catalog"
+            echo
+            echo '```json'
+            cat dist/update-manifest.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  spec:
+    name: Upstream specification drift
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fingerprint the upstream specification
+        # A skill collection validates against a specification that can change
+        # under it. Discovering that from a failing validator months later means
+        # every skill in the collection may already be non-conformant at once.
+        run: |
+          mkdir -p spec
+          {
+            curl -fsSL --retry 3 --max-time 30 https://agentskills.io/specification \
+              | sha256sum | cut -d' ' -f1 > spec/upstream.sha256 || true
+            date -u +%Y-%m-%dT%H:%M:%SZ > spec/upstream.checked || true
+          }
+          cat spec/upstream.sha256 2>/dev/null || echo "upstream unreachable"
+
+      - name: Compare against the recorded fingerprint
+        run: |
+          new="$(cat spec/upstream.sha256 2>/dev/null || echo '')"
+          old="$(git show HEAD:spec/upstream.sha256 2>/dev/null | tr -d '[:space:]' || echo '')"
+
+          if [ -z "$new" ]; then
+            echo "::warning::could not reach agentskills.io; skipping the comparison"
+            exit 0
+          fi
+          if [ -z "$old" ]; then
+            echo "No fingerprint recorded yet. Recording $new without opening an issue."
+            exit 0
+          fi
+          if [ "$old" = "$new" ]; then
+            echo "specification unchanged"
+            exit 0
+          fi
+
+          echo "::notice title=Upstream spec changed::agentskills.io/specification no longer matches the recorded fingerprint."
+          {
+            echo "The upstream Agent Skills specification changed."
+            echo
+            echo "| | Fingerprint |"
+            echo "| --- | --- |"
+            echo "| Recorded | \`$old\` |"
+            echo "| Current | \`$new\` |"
+            echo "| Checked | $(date -u +%Y-%m-%dT%H:%M:%SZ) |"
+            echo
+            echo "This is **not** a failure. Nothing here is broken."
+            echo
+            echo "What to do:"
+            echo
+            echo "1. Read the diff at <https://agentskills.io/specification>."
+            echo "2. Decide whether any rule in \`scripts/validate-skills.sh\` should change."
+            echo "3. If so, change it and let the validator tell you which skills it now rejects."
+            echo "4. Update the fingerprint with \`scripts/check-upstream.sh --accept\`."
+            echo
+            echo "Do not accept the new fingerprint before reading the change. The fingerprint"
+            echo "is what stops this check reporting again, so accepting it early silences the"
+            echo "signal permanently."
+          } > drift.md
+
+      - name: Open an issue when the specification moved
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ ! -f drift.md ]; then
+            echo "no drift; nothing to open"
+            exit 0
+          fi
+          # One open issue per fingerprint, so a persistent change does not
+          # produce a new issue every day for a month.
+          title="Upstream Agent Skills specification changed"
+          existing=$(gh issue list --search "$title in:title" --state open \
+                       --json number --jq '.[0].number' 2>/dev/null || echo '')
+          if [ -n "$existing" ] && [ "$existing" != "null" ]; then
+            echo "issue #$existing already open for this; adding a comment instead"
+            gh issue comment "$existing" --body-file drift.md
+          else
+            gh issue create --title "$title" --body-file drift.md
+          fi
