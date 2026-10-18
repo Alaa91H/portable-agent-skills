@@ -38,6 +38,14 @@ else
   SKILLS_DIR=".opencode/skills"
 fi
 DIST_DIR="${DIST_DIR:-dist}"
+
+# The clusters file, overridable so the regression suite can point it at a
+# fixture. The earlier version of that suite planted its drift in the committed
+# skills.sh.json and restored it on exit, which is safe only while nothing
+# kills the run: an interrupted test leaves the repository broken, and the
+# restore is a trap, which a SIGKILL does not run. A fixture has no such
+# failure mode because there is nothing to restore.
+CLUSTERS_FILE="${CLUSTERS_FILE:-skills.sh.json}"
 VERSION_FILE="VERSION"
 
 if [ -t 1 ]; then
@@ -324,12 +332,12 @@ done
 # That was found by accident, after reverting one file and noticing the totals
 # no longer reconciled. Every other defect this validator catches was caught on
 # purpose, which is an argument for checking it rather than waiting again.
-if [ "$SKILLS_DIR_OVERRIDDEN" -eq 0 ] && [ -f skills.sh.json ]; then
+if [ "$SKILLS_DIR_OVERRIDDEN" -eq 0 ] && [ -f "$CLUSTERS_FILE" ]; then
   section "cluster membership"
 
   # Kebab-case quoted tokens are skill ids. Cluster titles all contain a space,
   # so they cannot match, which is what makes this safe to extract crudely.
-  listed="$(grep -oE '"[a-z0-9]+(-[a-z0-9]+)+"' skills.sh.json | tr -d '"' | sort -u)"
+  listed="$(grep -oE '"[a-z0-9]+(-[a-z0-9]+)+"' "$CLUSTERS_FILE" | tr -d '"' | sort -u)"
   ERRORS_BEFORE_CLUSTERS=$ERRORS
 
   for id in "${ALL_IDS[@]}"; do

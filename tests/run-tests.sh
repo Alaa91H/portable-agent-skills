@@ -511,16 +511,41 @@ fi
     i18n_case i18n-stale-prose-count "$es" 'prose states a count'
     heal_i18n
 
-    # The same drift in Arabic-Indic digits. Written as a single unsplit token
-    # the digit list does not word-split under Git Bash and the normalisation
-    # silently becomes a no-op, which is what this case exists to catch.
+    # The same drift in Arabic-Indic digits. This is the case that failed on CI and
+    # passed locally, and the reason is worth keeping in the source.
     #
-    # The pattern takes the first two-digit Arabic-Indic run rather than a
-    # literal, for the same reason as above. Without the trailing g it replaces
-    # one occurrence, and if the file is reordered so that is the agent count
-    # instead, the case still plants an invalid number and still holds.
-    sed -i 's/[٠-٩][٠-٩]/٧٩/' "$ar"
-    i18n_case i18n-stale-arabic-count "$ar" 'prose states a count'
+    # The plant was written as a bracket range, sed 's/[٠-٩][٠-٩]/٧٩/'. Under a
+    # C locale that range is a range of bytes that cannot be expressed, so it
+    # matches nothing, the file is never planted, and the case passes because the
+    # absence of a failure looks like a success. Locally the runner happens to
+    # default to a UTF-8 locale, so the same command worked there.
+    #
+    # The plant is therefore built the way the checker builds its own
+    # normalisation: one literal substitution per character, which is
+    # locale-independent. And the case asserts that normalisation changed the
+    # file, so a silent no-op fails loudly instead of passing quietly.
+    ad_sed=""
+    ad_i=0
+    for d in ٠ ١ ٢ ٣ ٤ ٥ ٦ ٧ ٨ ٩; do
+      ad_sed="${ad_sed}s/$d/$ad_i/g;"
+      ad_i=$((ad_i + 1))
+    done
+    sed -i "$ad_sed" "$ar"
+
+    if ! grep -q '[0-9][0-9]' "$ar"; then
+      printf '  %sFAIL%s  %-24s digit normalisation did not change %s\n' "$RED" "$RST" i18n-stale-arabic-count "$(basename "$ar")"
+      annotate i18n-stale-arabic-count "digit normalisation changed nothing, so the case would pass without testing anything"
+      failures=$((failures + 1))
+    else
+      # Now the digits are ASCII, so the plant matches the Latin case's.
+      #
+      # It targets a number directly after a table pipe rather than the first
+      # two-digit run in the file. The first such run is the ordered-list marker
+      # for item 10, not the skill count, and a plant that lands in the wrong
+      # place tests nothing.
+      sed -i 's@| [0-9][0-9]@| 79@' "$ar"
+      i18n_case i18n-stale-arabic-count "$ar" 'prose states a count'
+    fi
     heal_i18n
 
     # A translation nobody declared, which is drift in the other direction.
@@ -534,19 +559,19 @@ fi
   # ------------------------------------------------ every skill is in a cluster
   #
   # This one only runs against the real repository, because the validator skips
-  # it whenever SKILLS_DIR is pointed at a fixture. It therefore has to modify
-  # a committed file, and it heals the file on exit the same way the exec-bit
-  # case heals the git index: a test that can leave the repository broken is
-  # worse than the defect it checks for.
+  # it whenever SKILLS_DIR is pointed at a fixture. The skills still come from
+  # the real tree; only the clusters file is a copy, so a plant cannot leave the
+  # repository broken. An earlier version planted its drift in the committed
+  # skills.sh.json and restored it on exit, which depends on the run reaching
+  # its end: the restore is a trap, a SIGKILL does not run it, and an
+  # interrupted test left the repository with a missing skill in it.
   if [ -f "$ROOT/skills.sh.json" ]; then
-    clusters="$ROOT/skills.sh.json"
-    cp "$clusters" "$TMP/clusters.keep"
-    heal_clusters() { cp "$TMP/clusters.keep" "$clusters"; }
-    trap heal_clusters EXIT
+    clusters="$TMP/clusters.json"
+    cp "$ROOT/skills.sh.json" "$clusters"
 
     cluster_case() {
       local name="$1" needle="$2" out rc
-      out="$(cd "$ROOT" && bash scripts/validate-skills.sh --strict 2>&1)"; rc=$?
+      out="$(cd "$ROOT" && CLUSTERS_FILE="$clusters" bash scripts/validate-skills.sh --strict 2>&1)"; rc=$?
       if [ "$rc" != 0 ] && printf '%s' "$out" | grep -qF -- "$needle"; then
         printf '  %sok%s    %s\n' "$GRN" "$RST" "$name"
         passes=$((passes + 1))
@@ -571,18 +596,17 @@ fi
     if [ -n "$victim" ]; then
       sed -i "/\"$victim\"/d" "$clusters"
       cluster_case cluster-skill-missing "is on disk but in no cluster"
-      heal_clusters
+      cp "$ROOT/skills.sh.json" "$clusters"
     else
-      printf '  %sFAIL%s  %-24s could not find a skill id to remove from %s\n' "$RED" "$RST" cluster-skill-missing skills.sh.json
+      printf '  %sFAIL%s  %-24s could not find a skill id to remove from skills.sh.json\n' "$RED" "$RST" cluster-skill-missing
+      annotate cluster-skill-missing "could not find a skill id to remove from skills.sh.json"
       failures=$((failures + 1))
     fi
 
     # The other direction: an entry that groups a skill which does not exist.
     sed -i '0,/^      "skills": \[$/s//&\n        "skill-that-does-not-exist",/' "$clusters"
     cluster_case cluster-orphan-entry 'no such skill exists'
-    heal_clusters
-
-    trap heal_index EXIT
+    cp "$ROOT/skills.sh.json" "$clusters"
   fi
 
   # ------------------------------------------------------------------- summary
