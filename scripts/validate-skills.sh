@@ -381,6 +381,35 @@ if [ "$SKILLS_DIR_OVERRIDDEN" -eq 0 ] && [ -d "$DIST_DIR" ]; then
   fi
 fi
 
+# ------------------------------------------------------- catalog budget
+# Zed caps the total size of all skill names and descriptions at 50 KB and
+# silently drops whatever does not fit, so a collection can lose skills with no
+# error. Check against the strictest known budget rather than discovering it.
+CATALOG_BUDGET=51200
+if [ "$SKILLS_DIR_OVERRIDDEN" -eq 0 ]; then
+  budget=0
+  budget_n=0
+  for d in "$SKILLS_DIR"/*/; do
+    d="${d%/}"
+    f="$d/SKILL.md"
+    [ -f "$f" ] || continue
+    bn="$(fm_get "$f" name)"
+    bd="$(fm_get "$f" description)"
+    budget=$(( budget + ${#bn} + ${#bd} ))
+    budget_n=$(( budget_n + 1 ))
+  done
+
+  pct=$(( budget * 100 / CATALOG_BUDGET ))
+  if [ "$budget" -gt "$CATALOG_BUDGET" ]; then
+    fail "catalog budget exceeded: ${budget}B of ${CATALOG_BUDGET}B across $budget_n skills"
+    hint "agents that cap the catalog drop the overflow silently; shorten descriptions or split the collection"
+  elif [ "$pct" -ge 90 ]; then
+    warn "catalog budget at ${pct}% (${budget}B of ${CATALOG_BUDGET}B); Zed drops skills that do not fit"
+  else
+    pass "catalog budget ${pct}% used (${budget}B of ${CATALOG_BUDGET}B, $budget_n skills)"
+  fi
+fi
+
 # -------------------------------------------------------- documentation
 # A catalog that drifts from the skills it documents is documentation rot, so
 # it is checked mechanically rather than left to discipline. This repository
