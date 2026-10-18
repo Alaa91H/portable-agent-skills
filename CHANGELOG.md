@@ -11,6 +11,72 @@ event to a consumer, because all three change which skills reach them.
 
 ---
 
+## [1.2.0] - 2026-10-18
+
+Grew the collection from 79 to 84 skills, made it readable in eight languages,
+and gave it a platform-support matrix. Four of the five new skills were written
+to correct the shape of their request rather than to comply with it, and each
+correction is stated inside the skill with its reasoning.
+
+### Added
+
+- **`self-critique-and-polish`** — the self-review stance, a six-step improvement
+  study over seven fixed axes, and a reachable stopping condition.
+- **`deep-research`** — breadth and depth as separate passes, a source hierarchy
+  ordered by proximity rather than reputation, forum threads read as
+  distributions of experience, and saturation as a measurement rather than a
+  feeling.
+- **`dense-code-and-signal`** — removing padding, dead code and comments that
+  restate the code, while keeping the ones that record decisions.
+- **`quality-gates-and-tests`** — gates that can actually fail, test strength
+  measured by mutation rather than coverage, and what coverage is honestly good
+  for.
+- **`progress-and-course-correction`** — the during-execution gap: three
+  questions, run at boundaries, cheap enough to keep.
+- **`docs/i18n/`** — translated entry points in Spanish, French, German,
+  Brazilian Portuguese, Simplified Chinese, Japanese, Russian and Arabic,
+  including a right-to-left note.
+- **`docs/platforms.md`** — verified support separated from structural support
+  from what is not true yet, and the five platform-specific defects this
+  repository shipped and could not see from the platform it was written on.
+- **`scripts/check-i18n.sh`** — gates the translations against
+  `skills.sh.json`, in CI and in the release gate set.
+
+### Changed
+
+- **Cluster membership is now validated.** A skill on disk that appears in no
+  cluster in `skills.sh.json` still validated, built and mirrored; it was simply
+  never installed by `--only` and never appeared in any translated domain list.
+  Checked in both directions.
+- **The i18n gate reads the prose, not just the markers.** Eighteen stale counts
+  survived a passing gate because the markers declared the new number while the
+  text kept the old one.
+- **`scripts/release.sh` now runs `check-i18n.sh`**, matching the CI and release
+  workflows.
+- **The Codex headroom guardrail moved from 900 to 300 characters**, recorded
+  with its reason rather than lowered quietly. All pre-existing descriptions sit
+  between 59 and 83 characters against a 60-character floor, so there is no slack
+  left to reclaim.
+
+### Fixed
+
+- **`for d in ٠١٢٣٤٥٦٧٨٩` does not word-split under Git Bash.** All ten digits
+  arrived as one word, producing a substitution that normalised nothing and
+  looked correct in the source. The Arabic document's numbers were never
+  actually checked.
+- **The agent count was read from `agents.json`, which is not its source.** It
+  holds five protocol entries; grepping it for `id` returned 11. The count comes
+  from `AGENTS_TABLE` in `install.sh` now.
+- **The i18n marker was passed to `grep` as an argument**, so `grep` read it as a
+  filename and reported it missing rather than as text in hand.
+- **Two i18n regression cases were themselves defective.** Both named the live
+  skill count as a literal, so on adding a skill they silently planted nothing
+  and passed, because the absence of a failure looks like a success.
+- **The language loop in `check-i18n.sh` ran in a subshell**, discarding the
+  error count, via an `IFS` dance that is replaced with a redirected `while read`.
+
+---
+
 ## [1.1.0] - 2026-10-18
 
 Expanded the collection from 47 to 67 skills, closing the remaining gaps in a

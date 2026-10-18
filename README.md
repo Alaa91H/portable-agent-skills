@@ -13,7 +13,7 @@ with any agent out of the box.
 git clone https://github.com/Alaa91H/portable-agent-skills.git && cd portable-agent-skills && ./install.sh
 ```
 
-Current release: **1.1.0** · 84 skills · 18 domains · 14 agents · MIT
+Current release: **1.2.0** · 84 skills · 18 domains · 14 agents · MIT
 
 Every day the [daily workflow](.github/workflows/daily.yml) re-verifies the
 collection, rebuilds the catalog, and watches the upstream specification for

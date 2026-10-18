@@ -60,6 +60,7 @@ for gate in \
   "scripts/sync-agents.sh --check" \
   "scripts/sync-rules.sh --check" \
   "scripts/build-catalog-doc.sh --check" \
+  "scripts/check-i18n.sh" \
   "tests/run-tests.sh"
 do
   # shellcheck disable=SC2086
