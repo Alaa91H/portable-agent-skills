@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when adding or retiring a feature flag, or rotating secrets without downtime."
+description: "Use when adding or retiring a feature flag, or rotating secrets."
 ---
 
 

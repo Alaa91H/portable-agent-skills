@@ -1,5 +1,5 @@
 ---
-description: "Use when cutting a release, writing a changelog, choosing a version, or planning rollback."
+description: "Use when cutting a release, writing a changelog, or planning a rollback."
 ---
 
 

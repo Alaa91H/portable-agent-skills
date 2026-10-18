@@ -1,6 +1,6 @@
 ---
 name: feature-flag-and-secrets-lifecycle
-description: Use when adding or retiring a feature flag, or rotating secrets without downtime.
+description: Use when adding or retiring a feature flag, or rotating secrets.
 ---
 
 # Feature flags and secrets lifecycle

@@ -1,6 +1,6 @@
 ---
 name: contract-and-load-testing
-description: Use when writing Pact contract tests, or load testing an API with k6 or JMeter.
+description: Use when writing Pact contract tests, or load testing an API.
 ---
 
 # Contract and load testing

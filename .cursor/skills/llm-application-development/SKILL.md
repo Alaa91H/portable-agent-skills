@@ -1,6 +1,6 @@
 ---
 name: llm-application-development
-description: Use when building on language models: retrieval, prompts, evaluation, or tool calling.
+description: Use when building on language models: retrieval, prompts, evaluation, tool calls.
 ---
 
 # LLM application development

@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when git reports a conflict, a rebase stops, or a merge leaves CONFLICT markers."
+description: "Use when git reports a conflict, a rebase stops, or CONFLICT markers remain."
 ---
 
 

@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when handling personal data, implementing deletion, or setting retention policy."
+description: "Use when handling personal data, deletion, or retention policy."
 ---
 
 

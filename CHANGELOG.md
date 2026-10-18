@@ -56,6 +56,23 @@ versioned, automated update path.
 - `git-internals` — reflog recovery, automated bisection, hooks, and submodule
   pointers.
 
+**Checking your own work**
+
+- `trustworthy-checks` — writing validators, gates and CI checks that can
+  actually fail. Written after this repository shipped a check which reported
+  "already normalized" for its entire life while being structurally unable to
+  detect anything. Covers the asymmetry that makes a silently broken gate worse
+  than no gate, planting a known-positive as the only real test of a detector,
+  pinning both failure directions, and reporting the scanned population rather
+  than only the findings.
+- `shell-and-text-tooling` — the measured behaviour of the primitives repository
+  tooling is built from. `grep -q $'\r'` matches nothing and `grep -q $'\r\n'`
+  matches everything, both for reasons that are not obvious and neither of which
+  reports an error. Also: invalid sed intervals, names the shell already owns,
+  the impossibility of holding a NUL in a bash string, quoting that degrades at
+  each wrapper layer, and the measured difference between per-file subprocesses
+  and batched ones.
+
 **Release and update mechanism**
 
 - `VERSION` and this changelog, with semantic versions covering the collection

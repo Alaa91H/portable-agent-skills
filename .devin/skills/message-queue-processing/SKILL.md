@@ -1,6 +1,6 @@
 ---
 name: message-queue-processing
-description: Use when writing or reviewing queue consumers, workers, retries, or dead letter queues.
+description: Use when writing or reviewing queue consumers, workers, or retries.
 ---
 
 # Message queue processing

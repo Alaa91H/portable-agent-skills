@@ -1,6 +1,6 @@
 # Essential Agent Skills
 
-A curated, validated collection of **67 agent skills** covering the full arc of
+A curated, validated collection of **69 agent skills** covering the full arc of
 software work: deciding what to build, building it test-first, getting it
 reviewed, shipping it, running it, operating it, and writing skills of its own.
 
@@ -13,7 +13,7 @@ with any agent out of the box.
 git clone <this-repo> && cd <this-repo> && ./install.sh
 ```
 
-Current release: **1.1.0** · 67 skills · 15 domains · 14 agents · MIT
+Current release: **1.1.0** · 69 skills · 16 domains · 14 agents · MIT
 
 Every day the [daily workflow](.github/workflows/daily.yml) re-verifies the
 collection, rebuilds the catalog, and watches the upstream specification for
@@ -798,6 +798,35 @@ contracts and decisions, because most lost work is two agents writing one file
 and the second write discarding the first. Requires explicit file ownership in
 the prompt.
 
+### Checking your own work
+
+These two came out of building this repository rather than from studying it, and
+they are the least replaceable material in the collection, because everything
+else in it can be found elsewhere.
+
+**`trustworthy-checks`** — **A check that cannot fail is worse than no check**,
+because it is believed. A checker that always passes and no checker produce the
+same observable outcome, so the broken one is strictly more dangerous: it
+converts "I did not look" into "I looked and there was nothing", silently and
+indefinitely. The only test of a detector is a known-positive, so plant the defect
+and assert it is found. **Pin both directions** — a detector that flags
+everything and one that flags nothing fail in opposite ways and are equally
+useless, and each mistake is invisible in the other's test. And "no findings" is
+a claim about a population, not a result: report what you **scanned**, because
+that is the only thing distinguishing a clean tree from an empty one.
+
+**`shell-and-text-tooling`** — The measured traps of the tools repository
+tooling is built from. `grep -q $'\r'` **never matches anything**, because grep
+consumes the trailing CR as the pattern's own terminator; the fix is `-U`. The
+opposite trap is worse: `grep -q $'\r\n'` **matches everything**, because a
+newline in a pattern splits it and the empty remainder matches any file — it
+reports the whole repository as defective, the obvious response is to normalise
+all of it, and afterwards nothing looks wrong. Also covered: `\{0,\}` is not a
+valid interval, `GROUPS` and `close` are names the shell already owns, and eight
+subprocesses per file cost 265 s where two batched greps cost 1.3 s.
+
+---
+
 ### Cross-cutting correctness
 
 **`structured-logging-and-error-handling`** — The two domains where defects hide.
@@ -834,7 +863,7 @@ or `tools`, because a role does not tell an agent when to load anything.
 ## Repository layout
 
 ```text
-.opencode/skills/          canonical skill source, 67 skills
+.opencode/skills/          canonical skill source, 69 skills
 skills/ .claude/ .agents/ .github/ .cursor/ .devin/ .cline/    generated mirrors
 .cursor/rules/ .roo/rules/ .windsurf/rules/ .devin/rules/
 .cline/rules/ .trae/rules/                            generated on-demand rules

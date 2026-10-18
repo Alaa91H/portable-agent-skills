@@ -1,0 +1,211 @@
+---
+description: "Use when writing shell scripts, grep/sed/awk pipelines, or tooling that scans files."
+alwaysApply: false
+---
+
+
+# Shell and text tooling
+
+## Measure the tool, do not reason about it
+
+Every pattern below was measured, not recalled, and several behave differently
+from what the manual implies. A shell one-liner that "obviously" does X needs one
+run against a known input before you build on it, because the failure mode is
+usually **silent success**.
+
+```sh
+# never assume. Run both directions: must match, must not match.
+printf 'a\r\nb\r\n' > /tmp/crlf.txt
+printf 'a\nb\n'     > /tmp/lf.txt
+LC_ALL=C grep -qU $'\r' /tmp/crlf.txt && echo found    # yes
+LC_ALL=C grep -qU $'\r' /tmp/lf.txt   && echo found    # no
+```
+
+## The pattern that never matches
+
+```sh
+grep -q $'\r' file        # never matches anything
+grep -qP '\r' file       # never matches anything, -P does not help
+```
+
+GNU grep consumes a trailing carriage return in the pattern as part of the
+pattern's own line terminator. What remains is an empty pattern, and **an empty
+pattern matches nothing** in this position — the check reports success on a file
+full of the exact defect it exists to find.
+
+`-U` is the fix: it drops newline sensitivity, so the CR is an ordinary byte
+mid-line.
+
+## The pattern that matches everything
+
+The opposite failure, and more dangerous, because it looks like success until it
+reports a crisis.
+
+```sh
+grep -q $'\r\n' file       # matches every file, always
+```
+
+A **newline inside a grep pattern splits it into multiple patterns**, and the
+trailing remainder is empty, and an empty pattern matches any line. So a
+CRLF detector built this way reports the entire repository as defective, the
+obvious response is to normalise everything, and after that nothing looks wrong.
+
+Same class, different tool:
+
+| Construct | Behaviour |
+| --- | --- |
+| `grep -q "$unset" f` | matches everything |
+| `grep -q 'a\|\|b' f` | matches everything |
+| `grep -q '^$' f` | matches every blank line, not every line |
+| `sed "s/$v/x/"` with `v` empty | inserts `x` everywhere |
+| `find "$dir" -name "$g"` with `g` empty | non-empty result you did not expect |
+
+**Test the empty input explicitly.** It is the input that decides whether a check
+is safe.
+
+## Sed intervals have a floor
+
+```sh
+sed 's/^#\{1,\} \{0,\}//' file     # error: Unmatched \{ or "Unmatched \{"
+```
+
+`\{0,\}` is not a valid interval: the minimum repetition count may not be zero.
+GNU sed reports the error and **exits non-zero**, but a script that discards the
+status prints nothing and looks like it worked. Use a simpler form instead:
+
+```sh
+sed 's/^#*  *//' file
+```
+
+## Names the shell already owns
+
+Assigning to these is silently ignored or silently wrong — no error, no warning:
+
+| Name | Why |
+| --- | --- |
+| `GROUPS` | a bash builtin array; assignment is discarded |
+| `close` | an awk built-in function; used as a variable it yields no output |
+| `UID`, `EUID`, `PPID`, `SECONDS`, `RANDOM`, `LINENO` | set by the shell |
+| `IFS`, `PATH`, `HOME`, `PWD`, `OSTYPE`, `HOSTNAME`, `OPTARG` | the shell owns them |
+
+This fails as **empty output**, not as a crash, so the symptom appears far from
+the cause: a generated file comes out empty and the generator looks innocent.
+
+## Bash cannot hold a NUL
+
+A command substitution strips NUL bytes, so "searching for NUL with grep" cannot
+be expressed as a string operation. Compare byte counts instead:
+
+```sh
+is_text() {
+  raw="$(head -c 8192 "$1" | wc -c)"
+  clean="$(head -c 8192 "$1" | LC_ALL=C tr -d '\000' | wc -c)"
+  [ "$raw" -eq "$clean" ]
+}
+```
+
+The same rule explains why `grep -q $'\0'` is meaningless and why a variable set to
+binary data arrives as a shorter string than you wrote.
+
+## Process spawns dominate, and they scale with your tree
+
+The measured lesson. A checker that probes every file with a handful of
+subprocesses costs a constant number of processes **per file**:
+
+```
+per-file probing : 8 processes x 996 files = ~8000 spawns -> 265 s
+batched scan     : 2 processes total       ->   1.3 s
+```
+
+That is a 200x difference for the same answer, and the slow version looks like a
+hang rather than a design problem.
+
+```sh
+# slow: a process per file
+for f in $(find . -type f); do grep -qU $'\r' "$f" && echo "$f"; done
+
+# fast: one process for the whole tree
+find . -type f -print0 | xargs -0 grep -lU $'\r'
+```
+
+Then filter the survivors. The expensive predicate (`is_text`) runs on a handful
+of candidates instead of on everything.
+
+**`-print0` with `xargs -0`** is the only safe way to pass a file list: it
+survives spaces, quotes and newlines in filenames, which word splitting does not.
+
+Watch for flags that cancel each other: `grep -lzU` lists nothing at all, so a
+batch scan that silently returns empty is often a flag interaction rather than a
+clean tree. Confirm the batch form against a fixture before trusting it.
+
+## Quoting survives exactly as far as the first wrapper
+
+Every layer that re-parses text is a place the escaping changes meaning, and each
+one fails differently.
+
+| Layer | Failure |
+| --- | --- |
+| `sh -c "…"` | inner `$`, backtick and `\` are expanded by the outer shell first |
+| `eval "$cmd"` | a second full parse; a value containing code becomes code |
+| heredoc `<<EOF` | expands `$`; `<<'EOF'` does not, and is the default you want |
+| PowerShell → bash | `\` is not an escape character, so paths and regexes need care |
+| a regex substituted into a regex | `\` and `[]` must be escaped twice |
+
+When a value crosses a boundary, stop passing text and start passing bytes or
+files. A temporary script is more reliable than an `eval` chain at any depth.
+
+## Do not hold locks across a read-modify-write in a temp file
+
+```sh
+# two concurrent runs collide on the same temporary name
+tmp="$out.tmp.$$"
+```
+
+`$$` is the shell's PID, which is stable across a subshell and can be reused after
+one exits. Colliding on a temporary file corrupts whichever run finishes second.
+Use `mktemp`, which creates the file exclusively:
+
+```sh
+tmp="$(mktemp "${out}.tmp.XXXXXX")" || exit 1
+trap 'rm -f "$tmp"' EXIT
+```
+
+And note the two-step form `tmp` then `tmp.2` is not a second temp file — it is a
+second `mv` racing on the same name. Keep one name.
+
+## `set -e` does not check what you think
+
+`set -e` is disabled for commands on the left of `&&`, `||`, in a condition, and
+in a pipeline except the **last** element. So this checks `wc`, not `grep`:
+
+```sh
+set -e
+grep -q pattern file | wc -l      # green even when grep found nothing
+```
+
+Check explicitly where it matters, and never rely on `set -e` as the only
+guarantee that something ran.
+
+## Write the result the caller needs
+
+```sh
+printf 'normalized %d file(s) (%d scanned)\n' "$changed" "$file_count"
+```
+
+The **scanned** count is the part that matters. "Found nothing" is ambiguous
+between "looked at 996 files" and "looked at none", and only the second number
+tells them apart. A tool that reports what it examined is evidence; one that
+reports only findings is an absence of complaints.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "`grep $'\\r'` obviously matches a CR." | It does not. The CR is consumed as the pattern terminator. |
+| "It says every file is broken, so it works." | An empty pattern matches everything. Pin the must-not-match case. |
+| "sed errored, so it is fine." | The output is empty and the status was discarded. |
+| "`GROUPS` is just a variable." | It is a builtin array. The assignment is discarded, silently. |
+| "It is a small repo, speed does not matter." | 8 processes per file is 265 s at 1,000 files. It does not scale. |
+| "The file list has no spaces." | Until someone adds one. Use `-print0` and `xargs -0`. |
+| "The batch scan found nothing, so we are clean." | `grep -lzU` finds nothing regardless. Test the batch form on a fixture. |
+| "I read the manual." | Measure it. The manual does not cover the flag interactions. |

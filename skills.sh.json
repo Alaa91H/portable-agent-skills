@@ -153,10 +153,18 @@
     },
     {
       "title": "Cross-cutting correctness",
-      "description": "The two domains where defects hide best: logs and timestamps.",
+      "description": "The domains where defects hide best: logs and timestamps.",
       "skills": [
         "structured-logging-and-error-handling",
         "date-time-handling"
+      ]
+    },
+    {
+      "title": "Checking your own work",
+      "description": "Writing gates that can actually fail, and the shell primitives underneath them that quietly do not.",
+      "skills": [
+        "trustworthy-checks",
+        "shell-and-text-tooling"
       ]
     }
   ]

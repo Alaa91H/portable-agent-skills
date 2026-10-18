@@ -1,5 +1,5 @@
 ---
-description: "Use when designing backups, setting recovery objectives, or planning for data loss."
+description: "Use when designing backups, recovery objectives, or planning for data loss."
 ---
 
 

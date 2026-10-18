@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when writing Pact contract tests, or load testing an API with k6 or JMeter."
+description: "Use when writing Pact contract tests, or load testing an API."
 ---
 
 

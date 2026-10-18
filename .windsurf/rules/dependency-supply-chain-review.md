@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when adding or upgrading dependencies, or auditing a dependency tree or lockfile."
+description: "Use when adding or upgrading dependencies, or auditing a lockfile."
 ---
 
 

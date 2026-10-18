@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when writing or reviewing CI workflow files, or assessing pipeline supply chain risk."
+description: "Use when writing or reviewing CI workflows, or assessing supply chain risk."
 ---
 
 

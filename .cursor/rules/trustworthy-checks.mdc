@@ -1,0 +1,179 @@
+---
+description: "Use when writing a validator, gate, lint rule, or CI check, or when a check passes and you doubt it."
+alwaysApply: false
+---
+
+
+# Trustworthy checks
+
+## A check that cannot fail is worse than no check
+
+This is the asymmetry that decides everything else. A check which always passes
+and a check which is absent produce the **same observable outcome**: no findings.
+One of them is reported as evidence and the other is not, so the broken one is
+strictly more dangerous. It converts "I did not look" into "I looked and there was
+nothing", and it does so silently, indefinitely, for as long as nobody plants a
+defect to test it.
+
+So the first question about any check is not "is it correct" but **"what would it
+do if the thing it watches for were present?"** If you cannot answer that, you
+do not have a check; you have a ritual.
+
+## Prove it by planting the defect
+
+The only test of a detector is a known-positive. A test that runs the check
+against a clean input and asserts zero findings proves nothing, because that is
+also the behaviour of a check that is not looking at all.
+
+```sh
+# worthless: passes whether or not the detector works
+assert_check_reports_nothing_on_clean_input
+
+# worth something: the detector must find the thing it exists to find
+plant_known_defect_in_a_temp_copy
+assert_check_reports_it
+```
+
+Plant it in a fixture, not in the repository, and remove it afterwards — including
+when the assertion fails, or the next run inherits your defect and passes for the
+wrong reason.
+
+**Pin both directions.** A detector that flags everything and one that flags
+nothing fail in opposite ways and are equally useless. The loud one is usually
+diagnosed faster, which is exactly why it is safer: it produces an obvious wrong
+answer that gets investigated. Test both, because each mistake is invisible in the
+other's test.
+
+## "Clean" is a claim about a population
+
+A check that reports no findings has not reported success. It has reported that
+nothing in **the population it actually examined** matched. Those differ whenever
+the search is narrower than intended:
+
+- a glob that matched nothing, so there was nothing to look at
+- a path that does not exist, so the tool errored and the error was swallowed
+- an empty input list, so the loop body never ran
+- a filter that rejected every candidate before the check ever saw one
+
+**Report what you scanned, not only what you found.** A count in the output turns
+"clean" into evidence, because it distinguishes "examined 996 files, found
+nothing" from "examined nothing". This is cheap and it is the single highest-value
+line of output most checkers omit.
+
+```
+everything is already normalized (996 files scanned)
+```
+
+If the count is zero, the check has told you nothing and should say so loudly.
+
+## Check the exit status the caller actually sees
+
+The result of a check is its **exit status**, not its output. Everything between
+the two is where checks quietly stop working:
+
+| Trap | What happens |
+| --- | --- |
+| `if ! cmd; then ...` with output consumed | status survives, fine |
+| `cmd \| tee log` | status is `tee`'s, always zero |
+| `cmd; echo $?` after an intervening command | reports the wrong command |
+| `local out=$(cmd)` then `[ -n "$out" ]` | a failure with output passes |
+| `set -e` inside a `\|` pipeline | the left side is not checked |
+| `find ... \| xargs check` | `xargs` returns 123 when any check failed |
+
+```sh
+# wrong: green regardless of what the checker did
+find . -name '*.md' | xargs -0 ./check.sh | tee /tmp/report
+
+# right: propagate 123 and check every form
+find . -print0 | xargs -0 -r ./check.sh; rc=$?
+case $rc in 0) ;; 123|1) exit 1 ;; *) exit $rc ;; esac
+```
+
+## An empty pattern matches everything
+
+The most dangerous single line in a checker. Several tools treat a pattern that
+reduces to nothing as matching any input, and the checker then reports the entire
+repository as defective. It is loud, so it gets "fixed" quickly — by normalising
+everything, after which nothing looks wrong.
+
+```sh
+grep -q "$maybe_empty" file     # maybe_empty is unset or stripped
+```
+
+Same failure with an empty regex, an empty glob, an empty alternation
+`a||b`, and a variable that was set but empty by an earlier branch.
+
+**Assert on an empty input explicitly.** A checker that has never been handed an
+empty input has not been tested.
+
+## A cached result is not a check
+
+Anything that short-circuits a check turns it into a decoration:
+
+- a marker file saying "already verified" that nothing invalidates
+- a content hash keyed on the wrong inputs, so the check is skipped when it matters
+- a result stored under a key that omits the thing being checked
+- `--quiet` run in a path that then reports "passing" without the run
+- an `|| true` added "just for CI" that outlived its reason
+
+If the check does not execute on the change, the gate has no content.
+
+## Put the check where the change happens
+
+A check that only runs on `main`, or only in a nightly job, or only when someone
+remembers, does not gate anything. It **reports**. The difference is whether a bad
+change can reach consumers before the check sees it.
+
+| Where it runs | What it is |
+| --- | --- |
+| Every commit on the branch | a gate |
+| Every merge to main | a gate, a late one |
+| Nightly | a report |
+| On demand | a tool |
+
+Prefer late and reliable over early and flaky: a check developers disable after a
+false positive has provided no protection and has cost you the protection it was
+supposed to provide.
+
+## False positives are not a cosmetic problem
+
+A check that cries wolf gets muted, and muting it removes it. The cost of a false
+positive is therefore not the noise — it is that the next true positive arrives
+into a check nobody is reading any more.
+
+Budget for them deliberately: narrow the rule, stage it as a warning, or make the
+message say exactly which file and which construct. A check that reports one file
+rather than "the codebase" gets fixed. One that reports "several issues" gets
+ignored.
+
+## Make the failure explain the fix
+
+The person hitting this gate has one context you do not: what they were trying to
+do. A failure that names the file, the construct and the change that resolves it
+costs one edit. A failure that says "validation failed" costs a bisect through
+your own tooling.
+
+```
+FAIL  scripts/normalize.sh:48
+      has_cr matches nothing: grep consumes the trailing CR as the pattern's
+      own terminator, so use grep -qU instead
+```
+
+Path, line, the construct, and the specific replacement. Every part of that is
+something the reader would otherwise have to work out alone.
+
+Note what is **absent**: no stack trace, no "unexpected state", no list of every
+rule that ran. A message that could apply to any failure applies to no failure.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "It returned no findings." | That is also what not looking returns. Ask what it scanned. |
+| "The test covers it." | A test on clean input passes whether or not the check works. Plant a defect. |
+| "It ran green for months." | A broken check is green forever. Duration is not evidence. |
+| "It is only a convenience script." | Then a false failure is harmless, so it should be allowed to fail. |
+| "I verified the regex once." | Verify it against an input that must not match, and against an empty one. |
+| "CI would have caught it." | If it runs only nightly, it is a report. Say which. |
+| "False positives are tolerable." | They are what gets the check muted, and muting removes it. |
+| "It exits zero." | Check what ran before it, and what the pipeline did to its status. |
