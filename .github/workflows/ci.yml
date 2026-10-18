@@ -10,6 +10,14 @@ jobs:
     name: Normalise, validate, sync, test
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      # Only for the drift reporter below, and only when a gate has already
+      # failed. Widening token scope on a workflow that runs on every push is not
+      # free, so it is granted at the job rather than the workflow level and
+      # used by exactly one step that runs on the failure path only.
+      issues: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -50,3 +58,17 @@ jobs:
         # would mean the signal gets ignored. The daily workflow opens an issue.
         continue-on-error: true
         run: scripts/check-upstream.sh --status
+
+      - name: Name the drift in a tracking issue
+        # A gate that fails only in a log is a gate whose failure nobody sees.
+        # Logs are per-run and unlinked; an issue is durable and has history.
+        # Deduplicated inside the script, so a persistent failure comments on
+        # the one open issue instead of opening a new one on every push.
+        #
+        # This step exists partly because it is how the maintainer learns what is
+        # wrong without shell access to the runner, which is the same constraint
+        # any reader of this repository has.
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/report-drift.sh
