@@ -7,10 +7,17 @@
 # skill that lives where it looks.
 #
 #   .opencode/skills   canonical source (OpenCode project convention)
-#   skills/            the spec's own layout, and the Claude Code plugin root
-#   .claude/skills     Claude Code, project scope
-#   .agents/skills     the open spec's convention (VS Code Copilot, Codex, ...)
-#   .github/skills     GitHub Copilot
+#   skills/            the spec's own layout, Claude Code plugin root, and the
+#                      location GitLab Duo reads for Agent Skills
+#   .claude/skills     Claude Code, and a compatibility root for Cursor, Amp,
+#                      Kilo, Augment and Qodo
+#   .agents/skills     the industry-standard bucket, read by roughly two dozen
+#                      agents: Codex, Cline, Kilo, Amp, Zed, Goose, Gemini CLI,
+#                      Augment, Roo, Cursor, Copilot, Junie, Devin, Trae, Qodo
+#   .github/skills     GitHub Copilot, CLI and cloud agent
+#   .cursor/skills     Cursor's own project root
+#   .devin/skills      Windsurf/Devin preferred root
+#   .cline/skills      Cline recommended root
 #
 # The copies are committed so that a fresh clone works with every agent without
 # a build step. `--check` is the CI gate that makes drift impossible.
@@ -27,7 +34,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT" || exit 2
 
 SRC=".opencode/skills"
-TARGETS="skills .claude/skills .agents/skills .github/skills"
+TARGETS="skills .claude/skills .agents/skills .github/skills .cursor/skills .devin/skills .cline/skills"
 
 if [ -t 1 ]; then
   RED=$'\033[31m'; GRN=$'\033[32m'; BLD=$'\033[1m'; DIM=$'\033[2m'; RST=$'\033[0m'

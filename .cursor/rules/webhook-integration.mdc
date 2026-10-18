@@ -1,0 +1,139 @@
+---
+description: "Use when sending or receiving webhooks, verifying webhook signatures, integrating third-party payment or notification APIs, or handling delivery retries."
+alwaysApply: false
+---
+
+
+# Webhook and third-party API integration
+
+## Verifying a signature is the whole job
+
+An unauthenticated webhook endpoint is a public API with your write access.
+
+Verify **before parsing the body**, against the **raw bytes**, because re-serialising
+JSON changes key order and whitespace and breaks the digest.
+
+```ts
+import { createHmac, timingSafeEqual } from 'node:crypto'
+
+app.post('/webhooks/stripe', express.raw({ type: 'application/json' }), (req, res) => {
+  const sig = req.headers['stripe-signature'] as string
+  // parse t=<unix>,v1=<hex>
+  const expected = createHmac('sha256', process.env.STRIPE_WEBHOOK_SECRET!)
+                    .update(`${timestamp}.${req.body as Buffer}`).digest('hex')
+
+  if (!safeEqual(sig.v1, expected)) return res.status(400).send('bad signature')
+  if (Math.abs(Date.now() / 1000 - timestamp) > 300) return res.status(400).send('stale')
+
+  res.status(200).send()      // acknowledge fast; process asynchronously
+  queue.enqueue(handleEvent, req.body)
+})
+```
+
+Four requirements, each of which is skipped somewhere:
+
+- **Raw bytes**, not the parsed body.
+- **Constant-time comparison**, because a byte-by-byte comparison leaks timing
+  information. `timingSafeEqual`, not `===`.
+- **A timestamp tolerance**, typically five minutes, or a captured signature can
+  be replayed forever.
+- **Compare against the raw secret**, never a hash of it stored somewhere else.
+
+Acknowledge with `2xx` **before** doing the work. A slow handler causes the
+provider to time out and redeliver, which creates a delivery loop.
+
+## Delivery is at-least-once, so the handler must be idempotent
+
+Providers retry on non-2xx and on timeout. You will get duplicates, so dedupe by
+the provider's event id, and dedupe **before** the side effect:
+
+```sql
+INSERT INTO processed_webhooks (provider, event_id) VALUES ($1, $2)
+ON CONFLICT DO NOTHING;
+-- 0 rows means a replay: return 200 immediately, do nothing else
+```
+
+Make the effect itself naturally idempotent where you can, as described in
+`message-queue-processing`. Deduplication that happens after the side effect is
+not deduplication.
+
+## Replay attacks are not the same as retries
+
+Distinguish them, because they need different defences:
+
+| | Duplicate delivery | Malicious replay |
+| --- | --- | --- |
+| Source | The provider, on timeout | Anyone who captured a valid payload |
+| Timestamp | Recent | Old |
+| Defence | Dedupe on event id | Reject by timestamp tolerance |
+
+A five-minute window plus event-id deduplication covers both.
+
+## Payments need more than a signature
+
+For payment providers specifically:
+
+- **Verify the signature, then check the amount and currency** against what your
+  order expects. A validly signed event for the wrong amount is a real attack.
+- **Idempotency keys on every outbound API call.** Timeouts are
+  indistinguishable from failures, so a retry without a key can charge twice.
+  See `rest-api-design`.
+- **Handle out-of-order events.** A refund webhook can arrive before the
+  charge webhook settles. Reconcile from the provider's object, not from your
+  event stream.
+- **Treat "payment succeeded" as pending until reconciled**, not as immediate
+  fulfilment, for anything physical.
+- **Never trust the client's redirect** as confirmation. The browser is the
+  attacker. Confirm server-side against the provider's API.
+
+## Integrating any third-party API
+
+**Auth per vendor.** OAuth token, API key in a header, HMAC signature, or
+request signing all behave differently. Read the vendor's own reference rather
+than assuming a pattern.
+
+**Pagination is vendor-specific.** Cursor, page number, offset and
+`next_page_token` all exist. Read how the vendor does it, because getting it
+wrong silently returns page 1 forever.
+
+**Handle the errors they actually return.** Vendors often return `200` with an
+error body, or a `4xx` with no useful field. Treat an unrecognised response shape
+as a failure rather than as success.
+
+**Rate limits need backoff.** Read `Retry-After` when present, use exponential
+backoff with jitter otherwise, and honour `429` specifically. Respect a
+circuit-breaker threshold so a vendor outage does not exhaust your own workers.
+
+**Never retry non-idempotent calls without a key.** Retrying a timeout on a
+`POST` that creates a charge can create it twice.
+
+**Timeouts everywhere.** A default HTTP client with no timeout will eventually
+hang a worker forever, and one hung worker per request is an outage.
+
+**Version the integration.** Pin the vendor SDK and record the account or
+project identifier you are talking to, so a test cannot accidentally write to
+production.
+
+## Testing webhooks
+
+Get a signed fixture and test the failure modes, not just the happy path:
+
+| Case | Expect |
+| --- | --- |
+| Valid signature | Processed once |
+| Same event id, second delivery | Deduplicated, no second effect |
+| Tampered body | Rejected |
+| Timestamp outside tolerance | Rejected |
+| Signature for a different secret | Rejected |
+| Amount does not match the order | Flagged, not fulfilled |
+| Events arriving out of order | Reconciled correctly |
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "We are behind HTTPS, so it is authenticated." | HTTPS authenticates the host. Anyone can POST to your endpoint. |
+| "We compare the signature with `===`." | That leaks timing. Use a constant-time compare. |
+| "The provider will not send duplicates." | It will, on every timeout. |
+| "We acknowledge after processing." | A slow handler causes redelivery, and redelivery causes a loop. |
+| "Retry until it works." | Non-idempotent without a key means duplicate charges. |

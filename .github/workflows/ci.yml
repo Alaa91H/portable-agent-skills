@@ -19,8 +19,14 @@ jobs:
       - name: Validate every skill against the Agents Skills spec
         run: scripts/validate-skills.sh --strict
 
-      - name: Check agent discovery roots are in sync
+      - name: Check skill discovery roots are in sync
         run: scripts/sync-agents.sh --check
+
+      - name: Check generated flat rule files are in sync
+        run: scripts/sync-rules.sh --check
+
+      - name: Check the documentation catalog matches the skills
+        run: scripts/build-catalog-doc.sh --check
 
       - name: Regression-test the validator itself
         run: tests/run-tests.sh
@@ -32,4 +38,5 @@ jobs:
           expected=$(find .opencode/skills -name SKILL.md | wc -l)
           echo "catalog: $count skill(s), source: $expected"
           test "$count" -eq "$expected"
-          grep -q '"skills"' dist/index.json
+          # level-1 progressive disclosure needs a description per entry
+          grep -c '"description"' dist/index.json | grep -qx "$expected"

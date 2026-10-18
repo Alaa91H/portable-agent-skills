@@ -1,0 +1,18 @@
+# Aider configuration for using this collection.
+#
+# Aider has no skill discovery at all: it reads files only when told to. This
+# file makes it read AGENTS.md, which is the index for the whole collection.
+#
+# Usage: copy to ~/.aider.conf.yml or keep in the repository root.
+#
+# Aider is the one major agent where AGENTS.md support is opt-in. The agents.md
+# directory lists it, but Aider's own documentation describes only CONVENTIONS.md.
+# This is the configuration that bridges the two.
+
+read:
+  - AGENTS.md
+
+# Without this, Aider will not be told that the skills exist as files it can
+# open on request.
+auto-commits: true
+dirty-commits: warn

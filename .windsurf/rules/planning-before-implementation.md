@@ -1,0 +1,86 @@
+---
+trigger: model_decision
+description: "Use when a task needs more than a trivial edit and no agreed approach exists yet, or when asked to plan, spec, or break down work before implementing."
+---
+
+
+# Planning before implementation
+
+## When to plan
+
+Plan first when any one of these is true:
+
+- The change spans more than one module, or crosses a public interface.
+- More than one approach is plausible and they differ in cost, not in taste.
+- You are working from a requirement you have not yet restated in your own words.
+- The work is not cheaply reversible: a migration, a wire format, a public API, a data model.
+
+Skip planning when the edit is a single obvious change: a typo, a renamed local, a literal, a one-line guard that matches a pattern already in the file. Planning overhead dominates the work, and a plan that restates an obvious edit teaches nobody anything.
+
+## The failure this prevents
+
+Coding before agreeing on an approach converts a decision that should have cost one paragraph into facts already written to disk. From that point the decision is no longer a decision. It is a rewrite, with an audience, and possibly a migration.
+
+The cost is highest exactly when it feels lowest, because the first ten minutes of implementation feel productive. They are productive and wrong at the same time.
+
+## A plan is a list of states, not a list of activities
+
+Every line should describe a condition that can be checked without asking whether you finished working.
+
+| Activity (useless) | Verifiable outcome (useful) |
+| --- | --- |
+| Add validation | Reject requests missing `owner_id` with 400 before any query runs, covered by a test that fails without the check |
+| Refactor the parser | `parse()` returns a typed error instead of a bare string, and all five call sites handle it |
+| Improve performance | The 10k-row query completes under 200 ms in `EXPLAIN ANALYZE` on the staging snapshot |
+
+Read a plan back and ask of each line: *what would I observe if this were finished?* If the answer is a feeling rather than an observation, the line is an activity.
+
+## Decompose at running seams
+
+Split work where a test can execute on its own. A seam that requires the whole system to run is not a seam; it is a phase, and phases are where integration bugs live.
+
+Prefer **vertical slices** over **horizontal layers**:
+
+```
+horizontal:  model → repository → service → API → UI     (nothing runs until the last line)
+vertical:    one thin path end to end, then the next     (something real runs after each)
+```
+
+Each vertical slice should leave the system working. If a slice would leave it broken, it is two slices that were joined together.
+
+## State the approach and the alternative
+
+A plan that lists only the chosen approach cannot be challenged, which means it is not a decision yet. Note, in one line each:
+
+- the approach, and the constraint that selected it
+- the alternative rejected, and what would have made it the better choice
+
+This is the entire cost of a real decision, and it is what makes the plan reviewable.
+
+## Keep it proportional
+
+A plan is an instrument, not a ritual. Match its weight to the change:
+
+- Single obvious edit — no plan.
+- One-module change with a clear approach — three to five outcome lines.
+- Cross-cutting change — outcome lines plus a sequence, a rollback note, and the checks that gate each stage.
+
+A ten-page plan for a two-file change is a smell: either the change is not as simple as it looks, or the plan is doing the work that thinking should have done.
+
+## Correcting a plan in flight
+
+Replanning mid-task is normal and cheap. Replanning *silently* is not.
+
+When reality contradicts the plan, stop, write down which assumption failed, and state the revised plan before continuing. The reasons are what make the next plan better, and an unexplained pivot teaches the reader nothing.
+
+If two consecutive stages fail the same assumption, stop and reconsider the approach rather than the execution.
+
+## Rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "The requirement is clear, no plan needed." | Clear to you is not the same as agreed. The plan is where you find out. |
+| "I will just start and figure it out." | You will figure it out, after the cost has been paid and committed. |
+| "The plan is just overhead." | It is one paragraph. The rewrite it prevents is not. |
+| "I already know the architecture." | Then the plan will be short, which is a prediction you can check cheaply. |
+| "We are in a hurry." | Hurry is the condition under which an unexamined approach costs the most. |

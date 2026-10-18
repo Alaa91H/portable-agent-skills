@@ -1,0 +1,161 @@
+---
+description: "Use when adding translations, supporting multiple languages or locales, handling pluralisation, or formatting dates, numbers, and currency for international users."
+---
+
+
+# Localisation
+
+## Extract every user-visible string
+
+A hard-coded string is a string that will need a code change to translate, and
+that change will be made under time pressure in the wrong language.
+
+```ts
+// Wrong
+<button>Save changes</button>
+alert('Your file could not be uploaded.')
+throw new Error('User not found')
+
+// Right
+t('action.saveChanges')
+t('error.uploadFailed', { fileName })
+t('error.userNotFound', { id })
+```
+
+Machine-readable keys, English text as the value in the source language, and
+the key itself must read as English so translators can work without the code.
+"Save changes" as a key reads as English; `btn_01_save` does not.
+
+Keep the same words as English in the key file initially. Keys are an interface
+between developers and translators, and translating the key destroys it.
+
+## Never concatenate sentences
+
+Word order differs by language, and a translated fragment with an English verb
+around it is ungrammatical in most of them.
+
+```ts
+// Wrong: unspeakable in most languages, and untranslatable
+t('greeting') + ' ' + user.name + t('itemsRemaining', { n })
+
+// Right: one unit of translation, with placeholders
+t('greeting', { name: user.name })
+t('itemsRemaining', { n: 42, item: 'invoice' })
+```
+
+The same applies to plurals, which most languages have more forms of than
+English.
+
+## Pluralisation is a translation concern, not a code concern
+
+English has two forms. Arabic has six, Russian has three, Polish has more than
+English has letters in common use. `n === 1` in code is wrong almost everywhere.
+
+```json
+{
+  "itemsRemaining": {
+    "one":   "{n} invoice remaining",
+    "other": "{n} invoices remaining"
+  }
+}
+```
+
+```ts
+t('itemsRemaining', { n: count })   // the library selects the form
+```
+
+Never hand-roll this with a ternary. ICU MessageFormat is the standard format
+and it handles the plural categories that the plural rules file defines. A
+hand-rolled ternary produces English plural rules applied to Arabic text.
+
+## Numbers, dates, and currency must be formatted
+
+`2026-03-04` is not a date format. It is the ISO 8601 wire format, and showing it
+to a user is showing them an internal convention.
+
+```ts
+new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(1999.99)
+// de-DE: 1.999,99 €
+new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(date)
+// ar-EG: ٤ مارس ٢٠٢٦
+```
+
+This matters more than it looks:
+
+- **1,999.99 and 1.999,99 are different numbers.** A decimal separator hard-coded
+  as `.` misprices by a factor of a thousand in much of the world.
+- Some locales group digits in three, some in three and three and three, and
+  India groups the last three separately: 12,34,567.
+- Some languages use non-ASCII digits.
+- Currency symbol position and spacing differ.
+
+**Never parse formatted numbers.** Parse machine-readable values and format
+only for display. A formatted string is for humans, never for input.
+
+## Right-to-left is a layout concern, not a text concern
+
+```css
+[dir="rtl"] { --logical-start: right; }
+```
+
+Use CSS logical properties throughout so one stylesheet serves both directions:
+
+| Do not use | Use |
+| --- | --- |
+| `margin-left`, `padding-right` | `margin-inline-start`, `padding-inline-end` |
+| `left`, `right` | `inset-inline-start`, `inset-inline-end` |
+| `text-align: left` | `text-align: start` |
+| `border-left` | `border-inline-start` |
+| Hard-coded arrow glyphs `→` | `dir="auto"` on the element |
+
+Hard-coded directional arrows are the most visible RTL bug, because they point
+the wrong way. Set `dir="auto"` on user-generated content so mixed-direction
+text, such as an English product name inside an Arabic sentence, renders
+correctly.
+
+## Time zones and locales are different
+
+Locale is language plus formatting conventions. Time zone is location. A user in
+`en-AU` may be in `Australia/Sydney`. Do not derive one from the other, and never
+store a formatted date string. See `date-time-handling`.
+
+## Expanding strings
+
+Translations grow 30 to 50% over English, and German is commonly longer.
+
+- Never fix a container width to the English string length.
+- Allow wrapping, and test with a locale that produces the longest strings.
+- Buttons must accommodate the longest translated label, or they must have room
+  to grow.
+
+## Pseudo-localisation as a cheap test
+
+You cannot catch layout breaks from a translation without having one.
+
+```ts
+if (isDev) {
+  // en -> "Ĕñĝĺĩśĥ Ñĕśĥ Têśĥŧ" — reveals every clipping and overflow bug
+  mockLocale()
+}
+```
+
+Point `Accept-Language` at it in development and the layout problems appear
+immediately, at no translation cost.
+
+## What not to do
+
+- Do not build translation in by concatenating.
+- Do not hand-roll plural rules.
+- Do not format dates or currency manually, and do not store formatted strings.
+- Do not use physical CSS properties if any locale is right-to-left.
+- Do not treat translation as a single string swap; the layout is part of it.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "We will extract strings when we add a language." | Extraction then touches every file at once, under deadline. |
+| "`n === 1` matches English." | English is the only language that works that way. |
+| "Everyone reads English formatting." | Then you have users in only one locale, and one third of the world does not qualify. |
+| "CSS logical properties are the same." | Physical properties behave identically in both directions, which is the problem. |
+| "The strings are short, they will fit." | Translations grow 30 to 50%, and some locales use more characters per meaning. |

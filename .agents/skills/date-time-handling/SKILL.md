@@ -1,0 +1,142 @@
+---
+name: date-time-handling
+description: Use when working with dates, times, time zones, timestamps, scheduling, or calendar arithmetic, and when diagnosing off-by-one-day or ambiguous timestamp bugs.
+---
+
+# Date and time handling
+
+This domain has produced bugs in every codebase that touches it, and it has
+almost no skill guidance anywhere. The rules below are the ones that get broken.
+
+## Store UTC, always
+
+```sql
+created_at timestamptz NOT NULL DEFAULT now()
+```
+
+- **Store and compute in UTC.** A local timestamp without a zone is ambiguous
+  twice a year, and wrong the other 363.
+- Store an instant (`timestamptz`) when you mean a point in time. Store a local
+  wall-clock time only when you genuinely mean "3pm wherever the user is", and
+  name the column so the intent is visible.
+- Convert to the user's zone **at the presentation boundary**, and only there.
+- Send the offset explicitly over the wire. `2026-03-04T11:22:33.481Z` is
+  unambiguous; `2026-03-04 11:22:33` is not.
+
+## Never parse a local time without a zone
+
+```ts
+new Date('2026-03-04')          // parsed as UTC midnight, per spec
+new Date('2026-03-04T11:22')    // parsed as LOCAL time, per spec
+new Date('2026-03-04T11:22Z')   // parsed as UTC
+```
+
+Those first two lines disagree by hours in almost every time zone. This is a
+genuine inconsistency in the language, not a subtlety.
+
+Prefer an explicit format:
+
+```ts
+Temporal.Instant.from('2026-03-04T11:22:33Z')
+new Date('2026-03-04T11:22:33Z')   // or the Temporal polyfill
+```
+
+The Temporal API removes most of this class of bug by making a "local time
+without a zone" unrepresentable. If your platform has it, use it.
+
+## Daylight saving transitions are arithmetic problems
+
+Adding 24 hours is not the same as adding one day.
+
+```ts
+const plusDay = new Date(today.getTime() + 24 * 60 * 60 * 1000)   // wrong across a DST boundary
+```
+
+"Every day at 09:00 local" means the **next occurrence of 09:00 local**, which
+across a spring-forward transition is 23 hours later and across autumn is 25.
+
+| Transition | Effect on a 09:00 daily job |
+| --- | --- |
+| Spring forward | 02:00 never occurs; the following day is 23 hours away |
+| Autumn back | 01:00 occurs twice; the following day is 25 hours away |
+
+- Use a library's calendar arithmetic for `Temporal` or `date-fns` `addDays`,
+  which operate on calendar fields rather than milliseconds.
+- **Iterate in local wall-clock terms and convert per occurrence.** Convert a
+  schedule to UTC once and you have baked in last year's offset.
+- Recurring jobs belong in the scheduler with a named zone, not as precomputed
+  UTC timestamps.
+- Test with a zone that observes DST. `America/New_York`, `Europe/London`, and
+  `Australia/Lord_Howe` (a 30-minute DST shift) all catch different bugs.
+
+## Midnight and the off-by-one-day bug
+
+Midnight is not a day boundary in every calculation, and the error appears on
+roughly two days a year, which is why it survives testing.
+
+- Use half-open intervals everywhere: `created_at >= start AND created_at < end`.
+- "Today" in a user's zone is `startOfDay(now)` to `startOfDay(now.addDays(1))`
+  in **their** zone, converted to UTC for the query. Computing it in server time
+  gives the wrong answer for every user east or west of the server.
+- A day in a reporting table is a **calendar day in the reporting zone**, and
+  that must be a stored dimension. Recomputing it from a UTC timestamp shifts
+  every late-evening record into the previous day.
+
+## Ordering and equality
+
+- **Store instants in UTC and compare them as instants.** PostgreSQL orders
+  `timestamptz` chronologically regardless of the session time zone, which is
+  what you want; `timestamp` does not.
+- JavaScript `Date` comparisons work correctly across zones, but
+  `date.getHours()` returns hours in the **local** zone, which is the usual bug
+  when a value was meant to be UTC.
+- Be explicit about whether a value is an instant, a local date, or a local
+  date and time. In most type systems they are all the same type, which is
+  exactly why the bug is invisible.
+
+## Durations are not dates
+
+Adding a duration to an instant is correct. Adding 30 days to find "the same
+day next month" is calendar arithmetic and can land on a non-existent date.
+
+| Need | Use |
+| --- | --- |
+| "One hour from now" | Instant plus duration |
+| "Same time tomorrow, user's local" | Calendar `addDays`, in their zone |
+| "End of this month" | Calendar arithmetic, not 30 days |
+| "Business days from now" | A calendar and holiday list |
+
+## Formatting
+
+- **Format in the user's zone**, with an explicit locale, never by string
+  concatenation.
+- For a month name, day name, or ordering, use a locale-aware formatter. Sorting
+  ISO strings is safe; sorting "Mar" against "April" is not.
+- In SQL, `EXTRACT(MONTH FROM date)` is safe; `TO_CHAR(date, 'Month')` for
+  sorting is not.
+
+## Test the boundaries, not the middle
+
+Cases that find real bugs:
+
+```ts
+it.each([
+  ['2026-03-08T01:59:59-05:00', '2026-03-08T03:00:00-04:00'],  // spring forward
+  ['2026-11-01T01:30:00-04:00', '2026-11-01T01:30:00-05:00'],  // ambiguous hour
+  ['2026-03-08T00:30:00Z',      '2026-03-07T19:30:00-05:00'],  // UTC day vs local day
+  ['2026-02-29T12:00:00Z',      undefined],                     // leap day
+])
+```
+
+Also test a zone east of UTC and a zone far west, because the error appears on
+opposite sides of the date boundary.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "We store local time for simplicity." | It is ambiguous twice a year and wrong the other 363. Store UTC. |
+| "Adding 24 hours is a day." | It is 23 or 25 across a DST transition. Use calendar arithmetic. |
+| "Nobody is in that timezone." | Someone always is, and it is not the server. |
+| "The offset never changes." | It does, twice a year, for the user and not for you. |
+| "It works in testing." | Test a DST boundary and a month boundary. Both are absent from a naive test set. |

@@ -58,6 +58,13 @@ for d in "$SRC"/*/; do
 
   files="$(cd "$d" && find . -type f -not -path '*/.git/*' -printf '%P\n' | LC_ALL=C sort)"
 
+  # description is required so a host can do level-1 progressive disclosure from
+  # index.json alone, without fetching every SKILL.md. This is what the MCP
+  # skills extension expects of skill://index.json.
+  desc="$(sed -n 's/^description:[[:space:]]*//p' "$d/$entry_file" | head -n 1)"
+  desc="${desc#\"}"; desc="${desc%\"}"
+  desc="$(printf '%s' "$desc" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+
   file_json=""
   while IFS= read -r rel; do
     [ -n "$rel" ] || continue
@@ -72,6 +79,7 @@ EOF
     {
       \"name\": \"$name\",
       \"version\": \"$VERSION\",
+      \"description\": \"$desc\",
       \"files\": [$file_json]
     }"
 

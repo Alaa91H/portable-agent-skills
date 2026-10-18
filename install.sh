@@ -55,11 +55,25 @@ fi
 die() { printf '%serror:%s %s\n' "$RED" "$RST" "$*" >&2; exit 1; }
 
 # name | human label | local path | global path
+#
+# Local paths come from each agent's documented project convention. Where several
+# agents share one convention the path appears once, because installing once
+# serves all of them.
 AGENTS_TABLE="
 opencode|OpenCode|.opencode/skills|\$HOME/.config/opencode/skills
+agents|Spec clients: Codex, Cline, Kilo, Amp, Zed, Goose, Gemini CLI, Augment, Roo, Cursor, Copilot, Junie, Devin|.agents/skills|\$HOME/.agents/skills
 claude|Claude Code|.claude/skills|\$HOME/.claude/skills
-agents|Agents Skills (Copilot, Codex, other spec clients)|.agents/skills|\$HOME/.agents/skills
 github|GitHub Copilot|.github/skills|\$HOME/.github/skills
+cursor|Cursor|.cursor/skills|\$HOME/.cursor/skills
+devin|Windsurf / Devin Desktop|.devin/skills|\$HOME/.codeium/windsurf/skills
+cline|Cline|.cline/skills|\$HOME/.cline/skills
+roo|Roo Code|.roo/skills|\$HOME/.roo/skills
+junie|JetBrains Junie|.junie/skills|\$HOME/.junie/skills
+kilo|Kilo Code|.kilo/skills|\$HOME/.kilo/skills
+trae|Trae|.trae/skills|\$HOME/.trae/skills
+augment|Augment|.augment/skills|\$HOME/.augment/skills
+gemini|Gemini CLI|.gemini/skills|\$HOME/.gemini/skills
+codex|OpenAI Codex CLI|.codex/skills|\$HOME/.codex/skills
 "
 
 resolve_path() {

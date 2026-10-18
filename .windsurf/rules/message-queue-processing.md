@@ -1,0 +1,138 @@
+---
+trigger: model_decision
+description: "Use when adding or reviewing message queue consumers, producers, webhooks, or background workers, including retries, idempotency, ordering, and dead letter queues."
+---
+
+
+# Message queue processing
+
+## Exactly-once is a scoped claim, usually oversold
+
+Kafka's own design documentation is candid: *"Many systems claim to provide
+'exactly-once' delivery semantics, but it is important to read the fine print,
+because sometimes these claims are misleading."*
+
+There are only three consumer commit orderings:
+
+| Order | Crash between them | Semantics |
+| --- | --- | --- |
+| Save offset, then process | Messages lost | at-most-once |
+| Process, then save offset | Messages replayed | **at-least-once** |
+| Write the offset in the same transaction as the output | Atomic | exactly-once |
+
+The third is narrowly scoped. Kafka's own words: exactly-once is supported
+**within Kafka Streams**, and generally when reading, processing and writing all
+happen on Kafka topics. *"Exactly-once delivery for other destination systems
+generally requires cooperation with such systems."*
+
+Writing to an external database is the hard case. Two-phase commit is the
+general answer, and most databases a consumer wants to write to do not
+participate in it. Kafka's alternative is to **store the offset in the same place
+as the output**, making replay idempotent by position rather than by coordination.
+
+## So design for at-least-once plus idempotent consumers
+
+Everything else follows from this. Make the effect naturally idempotent:
+
+```sql
+-- idempotent by assignment
+UPDATE account SET balance_cents = 5000 WHERE id = $1
+
+-- NOT idempotent: replaying doubles it
+UPDATE account SET balance_cents = balance_cents + 5000 WHERE id = $1
+```
+
+Or dedupe on message id with a unique constraint:
+
+```sql
+INSERT INTO processed_messages (message_id) VALUES ($1) ON CONFLICT DO NOTHING;
+-- rows affected 0 means this is a replay; stop here
+```
+
+Required configuration for transactional processing, if you use it:
+consumer `isolation.level=read_committed` with `enable.auto.commit=false`, and
+producer `transactional.id=<stable name>`.
+
+On abort, the consumer's position **must be reset explicitly** so it reprocesses
+what the aborted transaction covered. Most consumer bugs live in that reset.
+
+## Ordering is per partition only
+
+Kafka guarantees order within a partition and nothing across partitions.
+
+- Key by entity id so all events for one entity land on one partition. That
+  preserves order **for that entity**, which is what you usually mean.
+- Keyless round-robin partitioning gives no ordering at all.
+- Partition count caps consumer parallelism. Adding consumers beyond the
+  partition count adds nothing and wastes connections.
+- **Rebalances stall the entire group.** Use static membership
+  (`group.instance.id`) so a rolling deploy does not trigger a full rebalance.
+  Otherwise every deploy pauses consumption and reassigns stateful tasks.
+
+## Dead letter queues
+
+Concrete numbers for AWS Lambda with SQS, which is the common shape:
+
+- **Visibility timeout at least 6x the function timeout**, plus
+  `MaximumBatchingWindowInSeconds`. AWS validates this at creation time and
+  rejects the configuration otherwise.
+- **`maxReceiveCount` of at least 5** on the source queue's redrive policy.
+- **Enable partial batch failure** (`ReportBatchItemFailures` plus
+  `bisect_batch_on_function_error`) so one poison pill does not fail the entire
+  batch. Without it, a single bad message retries forever and blocks everything
+  behind it.
+- **Alarm on DLQ depth.** A DLQ nobody watches is silent data loss with a tidy
+  appearance.
+- Extending visibility with `ChangeMessageVisibility` is capped at **12 hours
+  from first receive**, and extending does not reset that clock.
+
+## The double-write problem
+
+A service cannot atomically commit to its database and publish to a broker.
+`COMMIT` then `PUBLISH` loses the event if the process dies between them.
+
+Two patterns that work:
+
+- **Transactional outbox.** Write the event row in the *same* database
+  transaction, then relay to the broker separately. The relay is at-least-once,
+  and consumers dedupe on event id.
+- **Change data capture.** Debezium and equivalents read the commit log, so
+  there is no second write to lose.
+
+## Webhooks are the same problem wearing a different hat
+
+- **Verify the signature before parsing the body.** Over the raw bytes, not the
+  re-serialised JSON. A constant-time comparison, against the raw secret, with a
+  timestamp tolerance of a few minutes to stop replays.
+- **Treat delivery as at-least-once.** Dedupe by the provider's event id.
+- **Return 2xx fast and process asynchronously.** A provider that times out will
+  redeliver, and slow handlers create a delivery loop.
+- **Deduplicate before doing the side effect**, not after.
+
+## Sagas across services
+
+- Sagas trade ACID, specifically isolation, for availability. Intermediate state
+  is visible to other services and often to users, even though it may be
+  compensated later.
+- **A compensating transaction is not a rollback.** It only needs to be
+  *semantically equivalent*: a refund is not the same as an un-charge when fees
+  were applied.
+- Compensations must themselves be idempotent. `RefundCustomer($50)` must not
+  refund $100 when run twice.
+- Every step needs a tested compensating action, and the failure path deserves
+  the same rigour as the happy path.
+- Orchestration gives visibility and control at the cost of a central dependency;
+  choreography keeps services autonomous but makes the flow hard to see. A
+  six-step flow defaulted to choreography is almost always wrong.
+- **You cannot make a multi-service saga synchronous inside one HTTP request.**
+  The client must poll a status endpoint or receive a callback.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "The broker gives us exactly-once." | Within Kafka topics. Not across a database write. Design for at-least-once. |
+| "Retries are safe because processing is a read." | It is a read today and a write after the next feature. Make it idempotent now. |
+| "Keying is an optimisation." | It is what establishes per-entity ordering. Keyless means unordered. |
+| "We will add a DLQ if we need one." | You need it the first time a poison message appears. |
+| "We commit then publish." | A crash between them loses the event with no trace. Use an outbox. |

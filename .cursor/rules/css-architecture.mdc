@@ -1,0 +1,157 @@
+---
+description: "Use when setting up design tokens, managing a growing stylesheet, choosing between CSS-in-JS and utility classes, or when a codebase's styles have become hard to change safely."
+alwaysApply: false
+---
+
+
+# CSS architecture
+
+## Tokens first, components second
+
+A token is a decision recorded once. Raw values are decisions repeated silently.
+
+```css
+:root {
+  /* spacing on a 4px grid */
+  --space-1: 0.25rem;  --space-2: 0.5rem;   --space-3: 0.75rem;
+  --space-4: 1rem;     --space-6: 1.5rem;   --space-8: 2rem;   --space-12: 3rem;
+
+  /* colour as semantic roles, not values */
+  --surface:            hsl(0 0% 100%);
+  --surface-raised:     hsl(0 0% 98%);
+  --border-subtle:      hsl(214 32% 91%);
+  --text-primary:       hsl(222 47% 11%);
+  --text-secondary:     hsl(215 16% 47%);
+  --accent:             hsl(221 83% 53%);
+  --danger:             hsl(0 72% 51%);
+
+  /* two radii and one shadow scale, no more */
+  --radius-sm: 4px;    --radius-lg: 12px;
+  --shadow-raised: 0 1px 3px rgb(0 0 0 / 0.1), 0 1px 2px rgb(0 0 0 / 0.06);
+
+  /* fluid type and spacing */
+  --step-0: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --step-3: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+}
+```
+
+Semantic colour names mean dark mode is a second value set on `:root`, not a
+second stylesheet. Raw `#3b82f6` in a component is the defect that makes that
+impossible.
+
+Then enforce it, because tokens that are not enforced decay:
+
+```sh
+grep -rnoE '#[0-9a-fA-F]{3,8}\b' src/ --include='*.css' | grep -v ':root\|tokens'
+```
+
+Any hit outside the token file is a value that should be a token.
+
+## Cascade layers make specificity optional
+
+Modern CSS removes most of the reason people reached for CSS-in-JS.
+
+```css
+@layer reset, tokens, base, layout, components, utilities;
+```
+
+The order is declared once and is authoritative, so a component does not need
+`!important` or a naming scheme to win over a utility.
+
+- **Layers beat specificity.** A low-specificity rule in `components` wins over a
+  high-specificity rule in `base`.
+- **Never use `!important`.** If you need it, the layer order is wrong.
+- Utility classes go in `utilities`, which is last, so they win by design rather
+  than by selector weight.
+
+This is the single biggest structural improvement available to an existing CSS
+codebase, and it is a mechanical change.
+
+## Cascade layers versus specificity escalation
+
+The pattern this replaces:
+
+```css
+.card { padding: 1rem; }
+.card.is-featured { padding: 2rem; }   /* 0,2,0 beats 0,1,0 by luck */
+.page .card { padding: 1.5rem; }      /* 0,2,0, ties, loses on order */
+.page .card.is-featured { padding: 2.5rem; }  /* the arms race continues */
+```
+
+With layers, `.is-featured` in the `components` layer wins by layer order, and
+the specificity of neither selector matters.
+
+## Contain what a component owns
+
+Scope styles so a component cannot be changed from outside, and cannot change
+anything it should not:
+
+```css
+.card { container-type: inline-size; }
+
+/* respond to the space the component has, not the viewport */
+@container (min-width: 30rem) {
+  .card__body { display: grid; grid-template-columns: 1fr auto; gap: var(--space-4); }
+}
+```
+
+Container queries replace the viewport media queries that made components
+unusable in a sidebar or a modal. A component that depends on the viewport is a
+component that only works in one place.
+
+## Naming that survives a rename
+
+Use a single consistent convention and do not mix two:
+
+```css
+.card                      /* block */
+.card__title               /* element */
+.card--featured            /* modifier */
+.card.is-loading           /* state: transient, set by code */
+```
+
+- **Modifier** changes a variant the component knows about.
+- **State** is set by code and may change at any time. Do not encode it as a
+  modifier; you will forget to remove it.
+
+Prefix consistently (`pf-card` for a design-system component) so origin is
+visible and specificity does not escalate.
+
+## Pick one styling approach per project
+
+| Approach | Use when | Cost |
+| --- | --- | --- |
+| Tokens plus utility classes | Most product work | Class names in markup |
+| CSS Modules | Component-scoped styles with plain CSS | One file per component |
+| Cascade layers plus BEM | A large existing stylesheet, or vanilla | Naming discipline |
+| CSS-in-JS | Genuinely dynamic styling | Runtime cost, and no cross-file cascade |
+
+Do not mix two in one project. A half-migrated codebase is worse than either
+pure state, because the rules are unpredictable.
+
+If you are migrating, pick the target, define it in one place, and enforce it
+with a lint rule rather than by review.
+
+## Performance rules with numbers
+
+- **Never `@import` CSS from a component.** It serialises downloads. Bundle CSS
+  through the JavaScript graph or use `@layer`.
+- **Prefer custom properties to preprocessor variables.** Custom properties work
+  at runtime, cascade with the cascade, and can be changed per element; Sass
+  variables cannot.
+- Animating `transform` and `opacity` avoids layout and paint. Animating `width`,
+  `height`, `top` or `left` triggers layout on every frame.
+- `will-change` promotes an element permanently, which costs memory. Apply it
+  just before the animation and remove it after.
+- Long selector lists and universal selectors (`div div div span`) are matched
+  right to left, so the rightmost selector is the one to keep simple.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "Raw hex is fine for one component." | Dark mode and theming stop working. Use a semantic token. |
+| "I need `!important` here." | The layer order is wrong. That is what layers are for. |
+| "CSS-in-JS avoids specificity problems." | It avoids the cascade and adds a runtime and a build step. Layers solve it natively. |
+| "Media queries are fine." | They respond to the viewport, so a component breaks in a sidebar. Use a container query. |
+| "We will consolidate the tokens later." | Consolidating a thousand raw values is a rewrite. Generate them. |

@@ -1,0 +1,125 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Craft and process",
+      "description": "Deciding what to do, doing it test-first, and proving it works.",
+      "skills": [
+        "planning-before-implementation",
+        "writing-acceptance-criteria",
+        "test-driven-development",
+        "systematic-debugging",
+        "verification-before-completion"
+      ]
+    },
+    {
+      "title": "Testing and review",
+      "description": "Getting work checked, acting on the feedback, and proving nothing regressed.",
+      "skills": [
+        "requesting-code-review",
+        "receiving-code-review",
+        "property-based-testing",
+        "webapp-testing",
+        "refactoring-without-breaking-behaviour"
+      ]
+    },
+    {
+      "title": "Working in a codebase",
+      "description": "Orienting yourself, getting it running, and finding the model underneath the code.",
+      "skills": [
+        "onboarding-unfamiliar-codebase",
+        "environment-bootstrap",
+        "domain-modeling",
+        "improving-codebase-architecture",
+        "writing-technical-docs"
+      ]
+    },
+    {
+      "title": "Version control",
+      "description": "Branches, worktrees, merges, and getting a branch finished without surprises.",
+      "skills": [
+        "using-git-worktrees",
+        "finishing-a-development-branch",
+        "resolving-merge-conflicts"
+      ]
+    },
+    {
+      "title": "Interfaces and accessibility",
+      "description": "Building and reviewing interfaces, including localisation and WCAG conformance.",
+      "skills": [
+        "frontend-design",
+        "css-architecture",
+        "web-design-guidelines",
+        "accessibility-audit",
+        "localization-i18n"
+      ]
+    },
+    {
+      "title": "APIs and integrations",
+      "description": "HTTP and GraphQL contracts, versioning, webhooks, and authentication.",
+      "skills": [
+        "rest-api-design",
+        "api-contract-versioning",
+        "graphql-api-security",
+        "webhook-integration",
+        "oauth-authentication"
+      ]
+    },
+    {
+      "title": "Data and storage",
+      "description": "Queries, schema changes, caching, and background processing.",
+      "skills": [
+        "sql-query-performance",
+        "database-migrations",
+        "caching-and-stampedes",
+        "message-queue-processing"
+      ]
+    },
+    {
+      "title": "Infrastructure and operations",
+      "description": "Containers, orchestration, infrastructure code, pipelines, and incidents.",
+      "skills": [
+        "docker-containerization",
+        "kubernetes-deployment",
+        "infrastructure-as-code",
+        "ci-pipeline-security",
+        "incident-response"
+      ]
+    },
+    {
+      "title": "Performance and observability",
+      "description": "Finding the bottleneck, and knowing whether the system is healthy.",
+      "skills": [
+        "performance-profiling",
+        "observability-and-slos"
+      ]
+    },
+    {
+      "title": "Security",
+      "description": "Finding exploitable defects in code, dependencies, and response headers.",
+      "skills": [
+        "security-code-review",
+        "dependency-supply-chain-review",
+        "http-security-headers"
+      ]
+    },
+    {
+      "title": "LLM and agent engineering",
+      "description": "Building on language models, and writing and dispatching agent skills.",
+      "skills": [
+        "llm-application-development",
+        "writing-agent-skills",
+        "dispatching-parallel-agents"
+      ]
+    },
+    {
+      "title": "Cross-cutting correctness",
+      "description": "The two domains where defects hide best: logs and timestamps.",
+      "skills": [
+        "structured-logging-and-error-handling",
+        "date-time-handling"
+      ]
+    }
+  ]
+}

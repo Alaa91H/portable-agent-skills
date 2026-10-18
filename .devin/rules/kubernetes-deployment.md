@@ -1,0 +1,159 @@
+---
+description: "Use when writing or reviewing Kubernetes manifests, probes, resource limits, rollout configuration, or when diagnosing pods that crashloop or never become ready."
+---
+
+
+# Kubernetes deployment
+
+## Probes: getting these wrong causes outages
+
+Probe defaults: `periodSeconds` 10, `timeoutSeconds` **1**, `failureThreshold` 3,
+`initialDelaySeconds` 0, `terminationGracePeriodSeconds` 30.
+
+The `timeoutSeconds` default of one second is often too tight for a real
+endpoint under load.
+
+### Liveness must never check a dependency
+
+This is the single most damaging mistake in the manifest.
+
+Kubernetes' own documentation: *"Incorrect implementation of liveness probes can
+lead to cascading failures. This results in restarting of container under high
+load; failed client requests as your application became less scalable; and
+increased workload on remaining pods due to some failed pods."*
+
+The mechanism: the database hiccups, every pod's liveness check now fails, every
+pod restarts simultaneously, and the restart storm lands on the database while
+it is trying to recover. A dependency check in liveness turns a small dependency
+blip into a full outage.
+
+**Liveness answers one question: is this process irrecoverably wedged (a
+deadlock)?** It checks the process and nothing else.
+
+**Readiness is where dependency checks belong.** A readiness failure removes the
+pod from EndpointSlices, so traffic routes elsewhere while the pod keeps running
+and keeps recovering.
+
+### The startup probe formula
+
+> If your container usually starts in more than
+> `initialDelaySeconds + failureThreshold × periodSeconds`, you should specify a
+> startup probe.
+
+With defaults that is `0 + 3 × 10 = 30 seconds`. **Any application slower than
+30 seconds to start is killed mid-boot by the default liveness probe.**
+
+```yaml
+startupProbe:
+  httpGet: { path: /healthz, port: 8080 }
+  periodSeconds: 10
+  failureThreshold: 30        # 300s startup budget
+livenessProbe:
+  httpGet: { path: /healthz, port: 8080 }   # self only, no dependency checks
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+readinessProbe:
+  httpGet: { path: /ready, port: 8080 }     # includes dependency checks
+  periodSeconds: 5
+  timeoutSeconds: 3
+```
+
+`successThreshold` **must be 1** for liveness and startup; the API rejects
+anything higher.
+
+Two more: `exec` probes fork a process on every check, which costs real node CPU
+at high pod density, so prefer `httpGet` or `grpc`. And `httpGet` treats any
+status from 200 to 399 as success, so a redirect from your health endpoint
+counts as healthy.
+
+## Requests drive scheduling, limits punish you
+
+```yaml
+resources:
+  requests: { cpu: 500m, memory: 512Mi }
+  limits:   { cpu: 500m, memory: 512Mi }
+```
+
+- The scheduler guarantees that the **sum of requests** fits the node. Under-request
+  and you overcommit; memory under-request means nothing guarantees your pod fits.
+- Setting a limit without a request makes Kubernetes copy the limit into the
+  request, which is rarely what you wanted.
+- **`cpu: 500m` is 500 milliseconds of every 1-second period.** A container that
+  burns its quota instantly is **hard-stalled for the remainder of the period**.
+  That is a p99 latency cliff, not smooth throttling. For latency-sensitive
+  services, many high-scale setups omit CPU limits entirely and rely on requests
+  plus autoscaling.
+- **Memory limits are an OOM ceiling, not a target.** Exceeding it is `SIGKILL`,
+  no graceful shutdown, possibly a half-written request. Set the request near the
+  limit.
+- `emptyDir` with no `sizeLimit` can consume the pod's whole memory limit, or
+  every byte on the node if no limit is set.
+
+QoS classes: **Guaranteed** (requests == limits on both, the only class with no
+CPU starvation risk), **Burstable** (the usual default), **BestEffort** (no
+requests, evicted first).
+
+## Rolling updates and the rounding trap
+
+Defaults are `maxSurge: 25%` and `maxUnavailable: 25%`, and they cannot both be
+zero. `maxSurge` rounds **up**, `maxUnavailable` rounds **down**.
+
+The arithmetic people get wrong: with **3 replicas**, `maxUnavailable: 50%`
+resolves to **1**, not 2. With **1 replica**, it resolves to **0**, so a rollout
+never creates an availability gap but also never makes progress in one round.
+
+For anything with low replica counts, use explicit integers:
+
+```yaml
+strategy:
+  rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+```
+
+Never drop below the desired replica count. Add a PodDisruptionBudget to protect
+against *voluntary* disruption such as node drains. A PDB does not constrain the
+Deployment controller's own rolling update, so it is additive, not a substitute.
+
+## Secrets are not encrypted
+
+By default, a Kubernetes Secret is **base64-encoded in etcd in plaintext**, and
+anyone authorised to create a Pod in a namespace can read every Secret in it.
+Being a Secret is not a security control; you must enable etcd encryption at rest
+and restrict RBAC on `secrets`.
+
+Two behaviours that surprise people:
+
+- **`subPath` mounts never receive updates.** Mount the whole volume, not a file
+  inside it, if the secret must rotate.
+- **Environment variables from `secretKeyRef` never rotate either**, because
+  they are read at process start.
+- Update propagation is eventually consistent and can take a kubelet sync cycle
+  plus cache propagation delay.
+- `immutable: true` is one-way. You cannot revert it or mutate `data`; you must
+  delete and recreate. The benefit is that the kubelet stops watching, which
+  matters at tens of thousands of mounts.
+- Size limit about 1 MiB for Secrets and ConfigMaps combined.
+- An env var key that does not match the allowed pattern is **silently not
+  available** while the pod still starts. No error, no warning.
+
+## Diagnosing a pod that will not start
+
+```sh
+kubectl describe pod <name> | sed -n '/Events/,$p'   # scheduling and probe failures
+kubectl get pod <name> -o jsonpath='{.status.containerStatuses[*].lastState}'
+kubectl logs <name> --previous                        # the container that just died
+```
+
+`CrashLoopBackOff` with an `OOMKilled` reason is a memory request set too low.
+`ImagePullBackOff` is a registry or tag problem. A pod that starts then goes
+`NotReady` is a probe problem, not a crash.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "Liveness should check the database." | Then a database hiccup restarts every pod at once. That is how outages happen. |
+| "The app starts in under 30 seconds." | Until it does not on a slow node with a cold cache. The startup probe costs nothing. |
+| "We need CPU limits for fairness." | The limit is a hard stall at the quota boundary. Expect p99 cliffs. |
+| "Secrets are base64, that is encryption." | It is encoding. Enable etcd encryption at rest. |
+| "25% unavailable is fine at three replicas." | That is 1 pod, not 2. Use explicit integers. |

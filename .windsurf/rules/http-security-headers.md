@@ -1,0 +1,158 @@
+---
+trigger: model_decision
+description: "Use when setting security response headers, a Content-Security-Policy or CORS policy, or when reviewing an application for header hardening."
+---
+
+
+# HTTP security headers
+
+## The actual values
+
+```
+Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-{RANDOM}'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; upgrade-insecure-requests
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: geolocation=(), camera=(), microphone=()
+X-XSS-Protection: 0
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-site
+```
+
+Per OWASP's HTTP Headers Cheat Sheet. Four of these are routinely wrong, so the
+mistakes get their own section below.
+
+## `X-XSS-Protection` must be `0`
+
+The legacy filter was itself exploitable and **created** XSS holes in some
+sites. Every current browser ignores it. Setting `1; mode=block` is cargo cult
+from a 2010 tutorial and adds a header whose only effect is to look
+sophisticated.
+
+The real protection is the CSP `script-src` directive. `X-XSS-Protection: 0`
+exists to disable the old filter explicitly in case anything else turned it on.
+
+## Do not use `Expect-CT` or `Public-Key-Pins`
+
+HPPKP is removed from browsers after repeated site breakage. Use Certificate
+Transparency and a CAA DNS record instead. Shipping a pinned key means any
+misconfigured rotation bricks the site for every visitor until the pin expires.
+
+## HSTS is the one that can lock you out
+
+`max-age=63072000` is the two-year figure required for preload. It is also the
+figure that can take your entire user base offline.
+
+The failure mode is asymmetric and total: a long `max-age` plus an expired or
+misissued certificate means **no real user can reach the site** until the
+max-age expires. Nothing recovers it.
+
+Ramp instead of jumping to the preload value:
+
+```
+max-age=300              ->  confirm it works
+max-age=86400            ->  a day of tolerance
+max-age=31536000         ->  a month
+max-age=63072000         ->  two years, once you are confident
+```
+
+`preload` should be added last, not first.
+
+## CSP: a nonce, never `unsafe-inline`
+
+```
+script-src 'self' 'nonce-{RANDOM}'
+```
+
+- Generate a **new nonce per response**. A reused nonce is a static value, and a
+  static value is what injection is written against.
+- **Never combine `unsafe-inline` with a nonce.** The browser ignores the nonce
+  entirely when `unsafe-inline` is present in that directive, so you lose
+  protection while believing you have it.
+- `strict-dynamic` lets scripts loaded by a nonced script run without being
+  nonced themselves, which removes most of the `unsafe-inline` temptation.
+- `object-src 'none'` and `base-uri 'none'` are cheap and close real vectors:
+  plugin-based XSS and `<base>` tag hijacking.
+- `frame-ancestors 'none'` is the modern replacement for `X-Frame-Options`.
+  **Prefer it**, and note that XFO does nothing at all on JSON API responses or
+  redirects.
+
+Start in report-only mode so you learn what breaks before you break it:
+
+```
+Content-Security-Policy-Report-Only: default-src 'self'
+```
+
+## CORS
+
+- **Specific origins, never `*`** unless the API is genuinely public.
+- `Access-Control-Allow-Origin: *` combined with `Access-Control-Allow-Credentials: true`
+  is rejected by browsers, so wildcard plus credentials cannot work at all.
+- `Vary: Origin` is required whenever the allowed origin varies, or a shared
+  cache will serve one user's `Access-Control-Allow-Origin` to another.
+- Do not reflect an arbitrary `Origin` back. That is equivalent to `*` with extra
+  steps.
+
+## Cache-Control for sensitive responses
+
+```
+no-store      sensitive: credentials, personal data, anything session-bearing
+private       per-user but cacheable by the browser
+no-cache      cache it, but revalidate before reuse
+```
+
+**`no-cache` does not prevent caching.** It means "revalidate", which is a
+different requirement and the source of a real data leak. For anything
+credential-bearing use `no-store`.
+
+## Removing what you should not advertise
+
+`X-Powered-By`, `Server` (set it to `webserver`), `X-AspNet-Version`,
+`X-AspNetMvc-Version`. Each one tells an attacker your framework and version.
+
+## Server-specific traps
+
+**nginx**: `add_header` without the `always` flag only fires on a subset of
+status codes. Headers missing from your error pages are the classic
+consequence, so the pages an attacker generates have no protection.
+
+```nginx
+add_header "Strict-Transport-Security" "max-age=31536000; includeSubDomains" always;
+```
+
+**Apache**: `Header set` and `Header always set` write to separate tables, which
+produces duplicate headers. Unset first:
+
+```apache
+Header always unset X-Frame-Options
+Header always set X-Frame-Options "DENY"
+```
+
+**Files served to users**:
+
+```
+Content-Disposition: attachment
+Content-Type: application/octet-stream
+X-Content-Type-Options: nosniff
+```
+
+## Verify rather than assume
+
+```sh
+curl -sI https://example.com | grep -iE 'content-security|strict-transport|x-content-type|x-frame|referrer-policy|permissions-policy'
+# X-XSS-Protection should be 0, or absent. If it says 1; mode=block, it is wrong.
+```
+
+Check on a 404 and a 500, not only on `/`. That is where the nginx `always`
+trap shows up.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "CSP breaks our app." | Report-only mode shows you exactly what breaks before you ship it. |
+| "We are not under XSS attack." | The header is free, and the attack is opportunistic. |
+| "HSTS with preload is the safe choice." | It is safe once you can recover from a misissued certificate. Ramp first. |
+| "`no-cache` means do not cache." | It means revalidate. Use `no-store` for secrets. |
+| "We need `unsafe-inline` for a script tag." | Then you need a nonce. A shared `unsafe-inline` disables it. |

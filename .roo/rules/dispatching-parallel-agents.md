@@ -1,0 +1,86 @@
+---
+description: "Use when independent work items could run concurrently, or when a large task is being split across subagents without coordination."
+---
+
+
+# Dispatching parallel agents
+
+## The independence test
+
+Parallel work is safe when the outputs can be merged without reading the other
+outputs. Apply it to three things:
+
+| Shared resource | Parallel safe when |
+| --- | --- |
+| **Files** | No two agents write to the same file. A file is the unit of contention, not a line. |
+| **Contracts** | Each agent's output satisfies an interface defined before dispatch, not one it invents. |
+| **Decisions** | No two agents must reach the same decision, or must at least know the decision is already made. |
+
+If any row fails, the work is not independent. Most lost-work incidents in
+parallel dispatch are the first row: two agents editing one file, each with a
+stale copy, and the second write discarding the first.
+
+Make file ownership explicit in the dispatch prompt. "Edit `src/auth/`" and "edit
+`src/billing/`" is a contract. "Fix the auth bug" is not, because the second
+agent will reasonably decide the same file is in scope.
+
+## Write the dispatch so the agent cannot need a follow-up
+
+Each subagent receives:
+
+1. **The goal**, stated as an outcome, not a task description.
+2. **The boundaries** — which paths are yours, which are not.
+3. **The interface** — the exact shape of the result, so outputs merge.
+4. **The constraints** — conventions it must follow, since it has none of your context.
+5. **What to do when blocked** — return the question rather than guessing.
+
+Subagents start with no context from your session. Anything you know and do not
+write down is a constraint they will not have, and they will decide for
+themselves.
+
+## Keep genuinely serial work serial
+
+Not everything should fan out. These stay sequential because the output of one
+is the input of the next:
+
+- Exploring an unfamiliar codebase before editing it.
+- Any step whose result determines how the next step is approached.
+- Decisions that every subsequent task depends on: the data model, the public
+  interface, the naming convention.
+
+Decide these first, in the main context, and broadcast the decision. Otherwise
+four agents independently invent four incompatible interfaces, and the
+integration cost exceeds everything you saved.
+
+## Weigh the coordination cost
+
+Fan-out is worth it when the tasks are independent and each is large enough that
+context switching hurts. It is a loss when tasks are small, when you must read
+every output in full to assemble the result, or when the integration is as
+complex as the work.
+
+For three small edits, doing them in sequence is faster. For six independent
+review passes, fan out.
+
+## Integrate deliberately
+
+Results do not merge themselves.
+
+1. Verify each claim. An agent reporting "done" has asserted, not demonstrated.
+   Check the files, run the tests, read the diff.
+2. Look for duplicated decisions across agents, and for two agents that both
+   "fixed" the same thing differently.
+3. Re-run the whole suite once at the end. Individually green branches are not
+   jointly green.
+4. Read the integrated diff as a whole, because nobody has.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "They will not touch the same file." | They will, if the file boundary is not written down. |
+| "I will check the results afterwards." | Afterwards is after two agents have overwritten each other. |
+| "It is faster to run them all now." | Faster to start, and slower to finish if integration fails. |
+| "Each agent knows the codebase." | Each knows only what its prompt said. |
+| "The interface is obvious." | It is not, and two reasonable assumptions produce a broken merge. |
+| "I will let them explore first." | Exploration is per-agent and does not compose. Explore once, then dispatch. |

@@ -1,0 +1,87 @@
+---
+description: "Use when about to report that work is complete, fixed, passing, or done, before committing, pushing, or opening a pull request."
+alwaysApply: false
+---
+
+
+# Verification before completion
+
+## The rule
+
+An assertion is a claim. Evidence is the command output that supports it. Report
+the evidence or withdraw the claim.
+
+The failure mode is not dishonesty, it is fluency: having written the fix, the
+sentence "tests pass" is simply the next sentence, and it feels true because the
+code looks right. It is cheap to be wrong here and expensive to be wrong in a
+pull request.
+
+## Before saying "done", run it
+
+For each claim you are about to make, run the command that would falsify it and
+read the output to the end.
+
+| You are about to claim | Run |
+| --- | --- |
+| Tests pass | The full suite, not one file, and not only the tests you touched |
+| It builds | The real build command, after the change, with the config that ships |
+| It compiles | The type checker and the linter, which are separate programs with separate exit codes |
+| Nothing else broke | The suite, plus any caller you changed the signature of |
+| The file was created | List the directory. The write may have gone elsewhere. |
+| The fix works | The exact failing command from the bug report, re-run |
+
+An exit code of zero is necessary and not sufficient. Read the output: suites
+that report skipped tests, and reporters that summarise failures as warnings,
+both exit zero.
+
+## Verify the negatives deliberately
+
+Positive claims are easy to check. Negative claims are where the real errors
+live, because nothing fails when you skip them.
+
+Before saying a change is safe, actively look for the breakage:
+
+```sh
+# Who else calls the function whose signature changed?
+grep -rn "processPayment(" --include=*.ts src/
+
+# Is the thing I removed actually unreferenced?
+grep -rn "legacyExport" --include=*.ts src/
+```
+
+Then check the surfaces that have no test: migrations against an existing
+database, the path taken only in production configuration, the branch that only
+runs when an environment variable is set.
+
+## Verify the claim, not the intention
+
+Distinguish:
+
+- "I changed `handler.ts`" — verified by reading the file you changed.
+- "The request handler now validates the payload" — verified by a test that
+  fails without the validation.
+- "This fixes the reported bug" — verified by re-running the reported command.
+
+The third is the claim users care about, and it is the one most often asserted
+without a re-run.
+
+## If verification fails
+
+Say so immediately and specifically: the command, the output, and what you think
+is still wrong. A partial result reported honestly is more useful than a
+complete one reported wrongly, and the user can act on the first.
+
+Do not soften a failure into a question, and do not report a known-failing
+suite as passing because the failing test is unrelated to your change. It is
+still failing, and the person relying on your report does not know that.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "I just ran it a moment ago." | Before the last edit. Run it after. |
+| "It obviously works, I wrote it." | The test suite is what the user's environment will believe, not your confidence. |
+| "The failing test is unrelated." | If so, say so explicitly. Do not let it ride in silence. |
+| "I will check it after committing." | After committing is after the claim has been made. |
+| "The output looked fine." | Read it to the end. Failures often appear before the summary. |
+| "Running the full suite takes too long." | Then run the subset you touched and say that is what you ran. |

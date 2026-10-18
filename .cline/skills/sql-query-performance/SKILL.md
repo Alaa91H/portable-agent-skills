@@ -1,0 +1,141 @@
+---
+name: sql-query-performance
+description: Use when a database query is slow, when an index is missing or unused, or when writing queries against a large table.
+---
+
+# SQL query performance
+
+## Read the plan before changing anything
+
+```sql
+EXPLAIN ANALYZE SELECT ...;
+```
+
+Work from the plan, not from intuition about which part is slow. Look for:
+
+- **Rows estimated versus rows actual.** A large gap means stale statistics or
+  correlated predicates the planner misjudged, and it is a finding on its own
+  because it makes every other choice unreliable.
+- **A Seq Scan on a large table.** Fine on a 500-row lookup table, a defect on
+  ten million.
+- **Nested loop with a large outer set.** The loop runs outer times inner.
+- **Sort or HashAggregate spilling to disk.** `external merge Disk: 84MB` means
+  work_mem is too small for this operation.
+- **Row count exploding mid-plan.** This is the actual cause in most bad plans;
+  it is often several join rows per lookup row that the planner did not predict.
+
+## Write sargable predicates
+
+A predicate is sargable when the index can be used to seek. These forms cannot:
+
+```sql
+WHERE date(created_at) = '2026-01-15'    -- function on the column
+WHERE name LIKE '%son'                    -- leading wildcard
+WHERE user_id = '42'                      -- string literal against an int column
+WHERE YEAR(created_at) = 2026             -- same as date()
+WHERE created_at + INTERVAL '1 day' > NOW()
+```
+
+Rewrite so the column is bare on one side:
+
+```sql
+WHERE created_at >= '2026-01-15'
+  AND created_at <  '2026-01-16'         -- half-open ranges, not date()
+WHERE name LIKE 'son%'                    -- trailing wildcard is fine
+WHERE user_id = 42                        -- literal of the column's type
+WHERE created_at > NOW() - INTERVAL '1 day'
+```
+
+For fuzzy matching use a trigram or full-text index, which is what those exist
+for. Leading-wildcard `LIKE` cannot use a B-tree index at all.
+
+## Composite index column order
+
+The leftmost-prefix rule: an index on `(a, b, c)` serves queries filtering on
+`a`, on `a, b`, and on `a, b, c`. It does not serve a query filtering only on
+`b`.
+
+Order the columns by selectivity, then keep the column used for equality
+before the one used for a range. Once a range appears, the columns after it in
+the index cannot be used to narrow further, so put the equality columns first:
+
+```sql
+-- Queries: WHERE tenant_id = ? AND status = ? AND created_at > ?
+CREATE INDEX ON orders (tenant_id, status, created_at DESC);
+```
+
+Descending order matters for `ORDER BY ... LIMIT` on a large table: with an
+ascending index the database still sorts. Confirm with the plan that the index
+is used and that no Sort node appears.
+
+Check that an index is actually used before keeping it:
+
+```sql
+SELECT schemaname, relname, indexrelname, idx_scan
+FROM pg_stat_user_indexes
+WHERE relname = 'orders'
+ORDER BY idx_scan;
+```
+
+An index with `idx_scan = 0` is write cost for no read benefit. Dropping it may
+free the win.
+
+## The N+1 problem
+
+The most common query defect in application code is a query per row inside a
+loop.
+
+```sql
+-- 1 query
+SELECT o.id, o.total, c.name
+FROM orders o JOIN customers c ON c.id = o.customer_id
+WHERE o.created_at > NOW() - INTERVAL '30 days';
+
+-- 1 + N queries: one per order to get the customer name
+SELECT o.id, o.total FROM orders o WHERE ...;
+SELECT name FROM customers WHERE id = ?;   -- repeated
+```
+
+Check the log for repeated statements with different parameters. One query
+repeated with varying values is the signature.
+
+Beware the opposite failure: eager loading a collection referenced by a list
+turns 1 + N into a Cartesian product. When the relationship is many-to-many,
+load the collection once into a map and join in memory, or use a lateral join
+that returns aggregated rows.
+
+## Counting
+
+- `COUNT(*)` with no `WHERE` uses an index-only scan in PostgreSQL and is much
+  cheaper than `COUNT(1)`.
+- `COUNT(*)` counts rows; `COUNT(column)` skips NULLs. They differ exactly when
+  the column is nullable, which is the case that gets missed.
+- `EXISTS` stops at the first match, so it beats a join when you only need
+  presence:
+
+```sql
+-- Returns one row per matching order
+SELECT * FROM orders WHERE customer_id = 42 AND EXISTS (SELECT 1 FROM payments WHERE payments.order_id = orders.id);
+
+-- Better: plain index lookup, and clearer
+SELECT * FROM orders WHERE customer_id = 42 AND id IN (SELECT order_id FROM payments);
+```
+
+## Do not fix it in the application
+
+Before optimising a query, confirm the work is necessary. A report scanning ten
+million rows every page load should be cached, precomputed, or paginated. An
+index makes that query fast; it does not make it something you should be doing on
+every request.
+
+Check that the query count is the real problem before tuning SQL.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "I will add an index on every column." | Every index is write cost and storage, and most will never be read. |
+| "It is slow, so it must be the query." | Confirm with the plan. It is sometimes N+1, sometimes a missing index, sometimes too much data. |
+| "The estimate is close enough." | Estimates that are wrong make every other plan choice unreliable. |
+| "LIKE is fine, indexes work on strings." | B-tree works until the wildcard leads. |
+| "I will cache this instead." | Caching hides the cost and fails the first time the cache is cold or evicted. |
