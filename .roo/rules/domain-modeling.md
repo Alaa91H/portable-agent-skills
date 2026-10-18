@@ -1,5 +1,5 @@
 ---
-description: "Use when identifying domain concepts, business rules, or unclear vocabulary."
+description: "Use when identifying domain concepts, business rules, or unclear terms."
 ---
 
 

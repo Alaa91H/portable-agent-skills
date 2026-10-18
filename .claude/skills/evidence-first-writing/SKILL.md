@@ -1,6 +1,6 @@
 ---
 name: evidence-first-writing
-description: Use when an answer states a fact, figure, link, or claim about a third party.
+description: Use when an answer states a fact, figure, link, or claim about others.
 ---
 
 # Evidence first

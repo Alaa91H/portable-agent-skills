@@ -1,6 +1,6 @@
 ---
 name: api-contract-versioning
-description: Use when changing an API in a breaking way, or choosing a versioning scheme.
+description: Use when changing an API in a breaking way, or picking a version scheme.
 ---
 
 # API contract versioning

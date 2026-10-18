@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when an agent may invent facts, drift from the request, or output must be grounded."
+description: "Use when an agent may invent facts, drift from the request, or output is ungrounded."
 ---
 
 

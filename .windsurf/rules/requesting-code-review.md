@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when a feature or branch is ready, before merging, to get it reviewed."
+description: "Use when a feature or branch is ready, before merging, for review."
 ---
 
 

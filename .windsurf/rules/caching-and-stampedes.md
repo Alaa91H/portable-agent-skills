@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when adding or tuning a cache, or when a hot key overwhelms a database."
+description: "Use when adding or tuning a cache, or when a hot key overwhelms the DB."
 ---
 
 

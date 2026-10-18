@@ -1,6 +1,6 @@
 ---
 name: shell-and-text-tooling
-description: Use when writing shell scripts, grep/sed/awk, or file-scanning tooling.
+description: Use when writing shell scripts, grep/sed/awk, or file-scanning tools.
 ---
 
 # Shell and text tooling

@@ -1,6 +1,6 @@
 # Essential Agent Skills
 
-A curated, validated collection of **77 agent skills** covering the full arc of
+A curated, validated collection of **79 agent skills** covering the full arc of
 software work: deciding what to build, building it test-first, getting it
 reviewed, shipping it, running it, operating it, and writing skills of its own.
 
@@ -13,7 +13,7 @@ with any agent out of the box.
 git clone https://github.com/Alaa91H/portable-agent-skills.git && cd portable-agent-skills && ./install.sh
 ```
 
-Current release: **1.1.0** · 77 skills · 18 domains · 14 agents · MIT
+Current release: **1.1.0** · 79 skills · 18 domains · 14 agents · MIT
 
 Every day the [daily workflow](.github/workflows/daily.yml) re-verifies the
 collection, rebuilds the catalog, and watches the upstream specification for
@@ -396,6 +396,18 @@ still fails for a new reason.
 from each claim to the command that would falsify it. Gives most attention to
 **negative** claims, where nothing fails if you skip. Distinguishes exit code
 zero from a genuinely passing run.
+
+**`completeness-and-detail`** — The miss is almost never a hard thing; it is a
+boring adjacent one, so the method is to **enumerate before you act** and only
+then choose what to do. An inventory you did not write down is an inventory you
+did not have. Then **trace the lifecycle rather than the function** — create,
+read, update, delete, serialize, export, audit — because `delete` and `export`
+are where the surprise lives, since nobody was looking at them. Includes a
+closure checklist per artifact type, the boundary states that get missed (empty,
+one, maximum, concurrent, partial failure, unicode), and the highest-yield
+command in the skill: grepping for every identifier and literal the diff deleted.
+It also says where completeness **stops**, because an unstated boundary reads as
+an oversight when someone finds it later.
 
 ### Testing and review
 
@@ -883,6 +895,17 @@ in ten seconds. One template per item with **labelled fields** — what happened
 the details, the context, the analysis separated from the facts, and the source
 URL — so the reader can stop reading at any field without losing the item.
 
+**`honest-technical-reporting`** — The gap in a technical report is never
+between right and wrong; it is between what happened and what the report says
+happened, and that gap is usually one word. Its spine is a table of claim words
+and their preconditions: writing **"fixed"** asserts the defect no longer occurs,
+which means you reproduced it and watched it go; **"tests pass"** means you read
+the summary and named the count. The rule is to report three separate things —
+**done**, **verified**, **assumed** — because the common inflation is an
+assumption written as a verification. The argument for it is asymmetric: one
+honest "I do not know, here is how to check" costs a reader thirty seconds, and
+one confident wrong answer costs them a decision they will not know to revisit.
+
 ### Checking your own work
 
 These two came out of building this repository rather than from studying it, and
@@ -948,7 +971,7 @@ or `tools`, because a role does not tell an agent when to load anything.
 ## Repository layout
 
 ```text
-.opencode/skills/          canonical skill source, 77 skills
+.opencode/skills/          canonical skill source, 79 skills
 skills/ .claude/ .agents/ .github/ .cursor/ .devin/ .cline/    generated mirrors
 .cursor/rules/ .roo/rules/ .windsurf/rules/ .devin/rules/
 .cline/rules/ .trae/rules/                            generated on-demand rules

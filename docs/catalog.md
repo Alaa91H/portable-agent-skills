@@ -10,7 +10,7 @@ The routing sentence is the skill's exact `description`. Changing it changes whe
 the agent reaches for the skill, so treat it as reviewed surface rather than
 incidental wording.
 
-77 skills, grouped by cluster.
+79 skills, grouped by cluster.
 
 
 ## Craft and process
@@ -24,6 +24,7 @@ Deciding what to do, doing it test-first, and proving it works.
 | `test-driven-development` | Use when adding or changing a feature or bugfix that needs tests. |
 | `systematic-debugging` | Use when a test or build fails and the cause is not yet known. |
 | `verification-before-completion` | Use when about to report work complete, or before committing. |
+| `completeness-and-detail` | Use when finishing work and something may be missed, or auditing scope. |
 
 ## Testing and review
 
@@ -31,7 +32,7 @@ Getting work checked, acting on the feedback, and proving it under load.
 
 | Skill | Routes when |
 | --- | --- |
-| `requesting-code-review` | Use when a feature or branch is ready, before merging, to get it reviewed. |
+| `requesting-code-review` | Use when a feature or branch is ready, before merging, for review. |
 | `receiving-code-review` | Use when code-review comments arrive, or conflict with your work. |
 | `property-based-testing` | Use when testing structured or invalid input, or examples miss bugs. |
 | `webapp-testing` | Use when verifying a web app in a browser, or debugging a UI issue. |
@@ -46,11 +47,11 @@ Orienting yourself, getting it running, keeping it current, and keeping its stru
 | --- | --- |
 | `onboarding-unfamiliar-codebase` | Use when opening an unfamiliar repository, or orienting in one. |
 | `environment-bootstrap` | Use when setting up a dev environment, or installing dependencies. |
-| `domain-modeling` | Use when identifying domain concepts, business rules, or unclear vocabulary. |
+| `domain-modeling` | Use when identifying domain concepts, business rules, or unclear terms. |
 | `improving-codebase-architecture` | Use when reviewing codebase structure, duplication or refactor priority. |
 | `writing-technical-docs` | Use when updating a README, architecture notes or API reference. |
 | `codebase-decomposition` | Use when a file has grown large, or deciding where behaviour belongs. |
-| `up-to-date-tooling` | Use when choosing a library or API, recalling a version, or adopting new tooling. |
+| `up-to-date-tooling` | Use when choosing a library or API, recalling a version, or new tooling. |
 
 ## Version control
 
@@ -70,9 +71,9 @@ Building and reviewing interfaces, including localisation and WCAG conformance.
 | Skill | Routes when |
 | --- | --- |
 | `frontend-design` | Use when building or restyling an interface, component or page. |
-| `css-architecture` | Use when setting up design tokens, growing a stylesheet, or choosing styling. |
+| `css-architecture` | Use when setting up design tokens, growing a stylesheet, or picking styles. |
 | `web-design-guidelines` | Use when reviewing UI code against interface, accessibility or UX. |
-| `accessibility-audit` | Use when auditing a page or component for WCAG, screen readers, or keyboards. |
+| `accessibility-audit` | Use when auditing a page or component for WCAG, reader or keyboard use. |
 | `localization-i18n` | Use when adding translations, plurals, or date and number formats. |
 
 ## APIs and integrations
@@ -81,8 +82,8 @@ HTTP and GraphQL contracts, versioning, webhooks, authentication, and payments.
 
 | Skill | Routes when |
 | --- | --- |
-| `rest-api-design` | Use when designing or reviewing an HTTP API: errors, pagination, idempotency. |
-| `api-contract-versioning` | Use when changing an API in a breaking way, or choosing a versioning scheme. |
+| `rest-api-design` | Use when designing or reviewing an HTTP API: errors, pages, idempotency. |
+| `api-contract-versioning` | Use when changing an API in a breaking way, or picking a version scheme. |
 | `graphql-api-security` | Use when exposing or reviewing a GraphQL API, or when it is abused. |
 | `webhook-integration` | Use when sending or receiving webhooks, or verifying signatures. |
 | `oauth-authentication` | Use when implementing login, tokens, sessions, or OAuth flows. |
@@ -96,7 +97,7 @@ Queries, schema changes, caching, and background processing.
 | --- | --- |
 | `sql-query-performance` | Use when a query is slow, an index is missing, or a table is large. |
 | `database-migrations` | Use when running schema migrations or backfills that block queries. |
-| `caching-and-stampedes` | Use when adding or tuning a cache, or when a hot key overwhelms a database. |
+| `caching-and-stampedes` | Use when adding or tuning a cache, or when a hot key overwhelms the DB. |
 | `message-queue-processing` | Use when writing queue consumers, workers, retries or dead letters. |
 
 ## Data engineering
@@ -105,7 +106,7 @@ Modelling the warehouse, orchestrating pipelines, and tuning distributed compute
 
 | Skill | Routes when |
 | --- | --- |
-| `dbt-modeling` | Use when writing dbt models, incremental models, or fixing a broken build. |
+| `dbt-modeling` | Use when writing dbt models, incremental models, or fixing a build. |
 | `dimensional-modeling` | Use when designing a warehouse schema, or a slowly changing dimension. |
 | `orchestration-dag-authoring` | Use when writing or debugging Airflow, Dagster or Prefect DAGs. |
 | `spark-performance` | Use when a Spark job is slow, data skew is suspected, or joins break. |
@@ -129,11 +130,11 @@ Cloud posture and cost, secrets and flags, search relevance, and mobile release.
 
 | Skill | Routes when |
 | --- | --- |
-| `cloud-security-and-cost` | Use when reviewing cloud IAM, network exposure, or reducing cloud spend. |
+| `cloud-security-and-cost` | Use when reviewing cloud IAM, network exposure, or cloud spend. |
 | `feature-flag-and-secrets-lifecycle` | Use when adding or retiring a feature flag, or rotating secrets. |
 | `search-engineering` | Use when designing an Elasticsearch index or tuning relevance. |
 | `mobile-performance-and-release` | Use when a mobile app is slow to start, janky to scroll, or rejected. |
-| `email-deliverability` | Use when sending email, or configuring SPF, DKIM, or DMARC records. |
+| `email-deliverability` | Use when sending email, or configuring SPF, DKIM or DMARC records. |
 
 ## Performance and observability
 
@@ -152,8 +153,8 @@ Shipping, recovering, scheduling, and handling the data you hold about people.
 | Skill | Routes when |
 | --- | --- |
 | `release-engineering` | Use when cutting a release, writing a changelog, or a rollback plan. |
-| `backup-and-disaster-recovery` | Use when designing backups, recovery objectives, or planning for data loss. |
-| `background-jobs-and-scheduling` | Use when adding cron or a job queue, or when jobs overlap or run twice. |
+| `backup-and-disaster-recovery` | Use when designing backups, recovery objectives, or planning for loss. |
+| `background-jobs-and-scheduling` | Use when adding cron or a job queue, or when jobs overlap or repeat. |
 | `privacy-and-data-retention` | Use when handling personal data, deletion or retention rules. |
 
 ## Security
@@ -185,7 +186,7 @@ The domains where defects hide best: logs and timestamps.
 | Skill | Routes when |
 | --- | --- |
 | `structured-logging-and-error-handling` | Use when adding logging, propagating errors, or redacting secrets. |
-| `date-time-handling` | Use when working with dates, time zones, timestamps, or calendar arithmetic. |
+| `date-time-handling` | Use when working with dates, time zones, timestamps, or calendar maths. |
 
 ## Checking your own work
 
@@ -193,8 +194,8 @@ Writing gates that can actually fail, and the shell primitives underneath them t
 
 | Skill | Routes when |
 | --- | --- |
-| `trustworthy-checks` | Use when writing a validator, gate, or CI check, or when a check passes suspiciously. |
-| `shell-and-text-tooling` | Use when writing shell scripts, grep/sed/awk, or file-scanning tooling. |
+| `trustworthy-checks` | Use when writing a validator, gate, or CI check, or one passes suspiciously. |
+| `shell-and-text-tooling` | Use when writing shell scripts, grep/sed/awk, or file-scanning tools. |
 
 ## Working within an agent's limits
 
@@ -203,8 +204,8 @@ Spending a context window well, surviving compaction, and never stating anything
 | Skill | Routes when |
 | --- | --- |
 | `token-and-context-budget` | Use when a task is large, or when deciding what to read, delegate or write. |
-| `context-window-management` | Use when work must survive compaction, or a long task loses coherence. |
-| `hallucination-defense` | Use when an agent may invent facts, drift from the request, or output must be grounded. |
+| `context-window-management` | Use when work must survive compaction, or a task loses coherence. |
+| `hallucination-defense` | Use when an agent may invent facts, drift from the request, or output is ungrounded. |
 
 ## Producing trustworthy output
 
@@ -212,9 +213,10 @@ The last mile: what goes into an answer, how it is sourced, and how to catch tex
 
 | Skill | Routes when |
 | --- | --- |
-| `evidence-first-writing` | Use when an answer states a fact, figure, link, or claim about a third party. |
+| `evidence-first-writing` | Use when an answer states a fact, figure, link, or claim about others. |
 | `long-form-integrity` | Use when finishing a long generated answer, report, digest or write-up. |
 | `arabic-news-briefing` | Use when writing an Arabic news briefing, daily digest, or round-up. |
+| `honest-technical-reporting` | Use when describing work done, a result, or a status someone will act on. |
 
 ---
 

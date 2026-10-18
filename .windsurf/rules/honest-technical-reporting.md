@@ -1,0 +1,161 @@
+---
+trigger: model_decision
+description: "Use when describing work done, a result, or a status someone will act on."
+---
+
+
+# Honest technical reporting
+
+## The gap is never between right and wrong
+
+It is between what happened and what the report says happened. The work is
+usually fine; the description of it is inflated by one degree, and that degree is
+enough for a reader to make a decision they would not otherwise have made.
+
+Nobody sets out to mislead. It happens one word at a time:
+
+- the code changed, so "**fixed** it"
+- a test file exists, so "**added tests**"
+- nothing failed, so "**it works**"
+- three of fourteen passed, so "**tests pass**"
+
+Each step is a small, reasonable-sounding jump. The result is a report that a
+reader cannot act on, because the gap between it and reality is invisible from
+inside.
+
+## Claim words assert more than they seem to
+
+This is the whole skill in one table. Each word on the right carries a
+precondition on the left that most reports skip.
+
+| If you write | You are asserting | You must have |
+| --- | --- | --- |
+| "fixed" | The defect no longer occurs | Reproduced it, then observed it gone |
+| "works" | It functions | Exercised it, not just compiled it |
+| "tests pass" | Every relevant test passed | Read the summary; named the count |
+| "added tests" | They protect something | Run them; they fail without the change |
+| "refactored" | Behaviour preserved | Run the suite; see an empty test diff |
+| "optimized" | It is faster | Measured before and after, both reported |
+| "compatible" | It works on the target | Tested on the target |
+| "production-ready" | It is safe to deploy | Everything below, and stated as a risk assessment |
+| "no issues" | You looked and found none | Named what you looked at |
+
+The cost of a wrong word is not being corrected. It is being **acted on**. A
+reader who sees "tests pass" and sees "3 of 14 pass" makes two different
+decisions, and the second one is safe.
+
+## Report three separate things
+
+Most inflated reports blur three distinct categories into one sentence. Keep them
+apart:
+
+```
+Done        changed the parser to handle empty input
+Verified    added a case; it fails without the change, passes with it
+Assumed     that no caller depends on the old exception type
+```
+
+Each is honest on its own. The inflation happens when an assumption is reported
+as a verification, which is the single most common form of the problem: "now
+handles empty input" silently contains the assumption that empty input is
+possible and the handling is correct.
+
+**The "Assumed" line is not optional.** A report without it is claiming you
+checked everything, and you did not.
+
+## Partial work, reported partially
+
+The temptation is to make incomplete work sound complete because a report that
+says "done" is more satisfying than one that says "mostly done". That
+satisfaction is the defect: it is produced by the reader's relief at not being
+told the truth.
+
+```
+Done        the happy path
+Missing     the timeout branch, and the concurrent case
+Blocked     the third-party fixture, unavailable offline
+```
+
+Three lines, and the reader knows exactly where they stand. Compare with "the
+core flow is implemented", which tells them nothing they can plan around.
+
+## Do not claim capabilities you did not check
+
+This is `up-to-date-tooling` applied to your own report rather than to the code.
+The dangerous claims are the ones about **what exists**:
+
+- a library, function, or configuration key asserted without reading it
+- a version, without reading the lockfile
+- a flag, without reading the installed source
+- a project's capability, described from general knowledge
+
+Every one of these is a claim you can check in a command, and every one is a
+claim that is most confidently wrong when the project is one you have not seen.
+
+The test: **if you cannot point at where you learned it, you learned it from
+memory, and memory is not a source.** See `hallucination-defense` for the
+grounding rule and `evidence-first-writing` for classifying the claim once you
+have it.
+
+## Scope honestly
+
+Numbers are where reports overstate most and are checked least.
+
+```
+"all 14 tests pass"      versus  "the 2 tests for this path pass; 12 others
+                            were not run"
+"improved performance"   versus  "3.1s to 2.4s on one machine, one input"
+"search is optimised"    versus  "one index added; the other two queries still
+                            scan"
+```
+
+A partial result reported as partial is **more useful**, not less: it tells the
+reader where to look next, which is the thing they need and a rounded-up number
+cannot give them.
+
+## Attribute correctly
+
+When a tool says something, you did not conclude it. When you infer, you did.
+Keep the difference visible, because a reader who cannot tell will assume the
+stronger of the two.
+
+```
+npm test reports: 3 failed, 11 passed
+Reading:  the three failures are in files this change does not touch
+Unverified: whether they failed before the change too
+```
+
+The last line matters. Three failing tests are unremarkable before a change and
+alarming after one, and nothing in "3 failed" distinguishes the two.
+
+## Do not hide behind the request
+
+The subtlest form is not exaggerating your own work but shrinking the uncertainty
+to seem helpful. Presenting a guess as a conclusion because the guess is more
+useful to the reader is still a false claim, and it is worse than useless,
+because it removes their ability to check.
+
+If you are unsure and the answer matters, say so **and give them the means to
+resolve it**: the command, the file, the question.
+
+## Corrections are cheap; the untrustworthy report is not
+
+One honest "I do not know, here is how to check" costs a reader thirty seconds.
+One confident wrong answer costs them a decision, and they will not know to
+revisit it.
+
+That asymmetry is the entire argument for this skill. It is much cheaper to be
+accurate than to be caught being inaccurate.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "The work is fine, so the description is fine." | The reader decides based on the description. |
+| "'Fixed' is what we say when the change is right." | Then verify it is right, and say verified. |
+| "The suite is green." | Read the summary. A suite can be green and skip everything. |
+| "Listing what I skipped makes the report long." | It makes it usable. |
+| "They will check it anyway." | Then they will check the parts you did not mention. |
+| "Assuming something is different from claiming it." | Only if the reader can see which is which. |
+| "It clearly does that." | Clearly is the adverb that removes the check. |
+| "Reporting a partial result makes me look less competent." | It makes me accurate, which is the thing being measured. |

@@ -70,6 +70,17 @@ Added by the repository owner, written directly on GitHub and merged in.
   failure is invisible in long output that looks like work.
 - `arabic-news-briefing` — the item shape for a briefing scanned on a phone:
   labelled fields, the analysis separated from the facts, and a real source URL.
+- `honest-technical-reporting` — the gap in a report is between what happened and
+  what it says happened, and that gap is usually one word. A table of claim words
+  against the precondition each one asserts, the rule to report done, verified
+  and assumed separately, and why a partial result reported as partial is more
+  useful than a complete one reported as complete.
+
+**Craft and process**
+
+- `completeness-and-detail` — enumerate the surface before acting, trace the
+  lifecycle rather than the function, cover the boundary states the happy path
+  hides, grep for what the diff deleted, and state where completeness stops.
 
 **Checking your own work**
 

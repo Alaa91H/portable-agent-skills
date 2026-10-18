@@ -1,5 +1,5 @@
 ---
-description: "Use when sending email, or configuring SPF, DKIM, or DMARC records."
+description: "Use when sending email, or configuring SPF, DKIM or DMARC records."
 ---
 
 

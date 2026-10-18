@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when working with dates, time zones, timestamps, or calendar arithmetic."
+description: "Use when working with dates, time zones, timestamps, or calendar maths."
 ---
 
 

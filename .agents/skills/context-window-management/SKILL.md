@@ -1,6 +1,6 @@
 ---
 name: context-window-management
-description: Use when work must survive compaction, or a long task loses coherence.
+description: Use when work must survive compaction, or a task loses coherence.
 ---
 
 # Context window management

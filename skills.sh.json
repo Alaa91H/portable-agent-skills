@@ -10,7 +10,8 @@
         "writing-acceptance-criteria",
         "test-driven-development",
         "systematic-debugging",
-        "verification-before-completion"
+        "verification-before-completion",
+        "completeness-and-detail"
       ]
     },
     {
@@ -184,7 +185,8 @@
       "skills": [
         "evidence-first-writing",
         "long-form-integrity",
-        "arabic-news-briefing"
+        "arabic-news-briefing",
+        "honest-technical-reporting"
       ]
     }
   ]

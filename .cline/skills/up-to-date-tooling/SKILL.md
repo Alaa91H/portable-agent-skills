@@ -1,6 +1,6 @@
 ---
 name: up-to-date-tooling
-description: Use when choosing a library or API, recalling a version, or adopting new tooling.
+description: Use when choosing a library or API, recalling a version, or new tooling.
 ---
 
 # Up-to-date tooling

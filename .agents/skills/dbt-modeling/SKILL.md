@@ -1,6 +1,6 @@
 ---
 name: dbt-modeling
-description: Use when writing dbt models, incremental models, or fixing a broken build.
+description: Use when writing dbt models, incremental models, or fixing a build.
 ---
 
 # dbt modeling

@@ -1,6 +1,6 @@
 ---
 name: cloud-security-and-cost
-description: Use when reviewing cloud IAM, network exposure, or reducing cloud spend.
+description: Use when reviewing cloud IAM, network exposure, or cloud spend.
 ---
 
 # Cloud security and cost

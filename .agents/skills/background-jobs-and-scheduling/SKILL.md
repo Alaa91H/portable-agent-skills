@@ -1,6 +1,6 @@
 ---
 name: background-jobs-and-scheduling
-description: Use when adding cron or a job queue, or when jobs overlap or run twice.
+description: Use when adding cron or a job queue, or when jobs overlap or repeat.
 ---
 
 # Background jobs and scheduling

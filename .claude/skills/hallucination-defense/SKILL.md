@@ -1,6 +1,6 @@
 ---
 name: hallucination-defense
-description: Use when an agent may invent facts, drift from the request, or output must be grounded.
+description: Use when an agent may invent facts, drift from the request, or output is ungrounded.
 ---
 
 # Hallucination defense

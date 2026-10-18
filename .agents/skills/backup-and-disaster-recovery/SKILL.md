@@ -1,6 +1,6 @@
 ---
 name: backup-and-disaster-recovery
-description: Use when designing backups, recovery objectives, or planning for data loss.
+description: Use when designing backups, recovery objectives, or planning for loss.
 ---
 
 # Backup and disaster recovery

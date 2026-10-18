@@ -1,6 +1,6 @@
 ---
 name: trustworthy-checks
-description: Use when writing a validator, gate, or CI check, or when a check passes suspiciously.
+description: Use when writing a validator, gate, or CI check, or one passes suspiciously.
 ---
 
 # Trustworthy checks

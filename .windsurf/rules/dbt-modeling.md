@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when writing dbt models, incremental models, or fixing a broken build."
+description: "Use when writing dbt models, incremental models, or fixing a build."
 ---
 
 

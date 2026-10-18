@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when designing backups, recovery objectives, or planning for data loss."
+description: "Use when designing backups, recovery objectives, or planning for loss."
 ---
 
 
