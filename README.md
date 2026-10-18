@@ -26,6 +26,8 @@ drift. Every release carries English notes in
 
 - [Why this collection exists](#why-this-collection-exists)
 - [Quick start](#quick-start)
+- [Reading this in your language](#reading-this-in-your-language)
+- [Platform support](#platform-support-stated-rather-than-claimed)
 - [Keeping it current](#keeping-it-current)
 - [Supported agents and protocols](#supported-agents-and-protocols)
 - [How discovery works](#how-discovery-works)
@@ -131,6 +133,39 @@ skills-ref validate .opencode/skills/systematic-debugging
 
 ---
 
+---
+
+## Reading this in your language
+
+The skills are English on purpose, because an agent routes on `name` and
+`description` and identical routing fields in every language is what makes the
+collection work no matter what you write in. Everything a *reader* needs is
+translated:
+
+| | | | |
+| --- | --- | --- | --- |
+| [English](README.md) | [Español](docs/i18n/es.md) | [Français](docs/i18n/fr.md) | [Deutsch](docs/i18n/de.md) |
+| [Português (BR)](docs/i18n/pt-BR.md) | [简体中文](docs/i18n/zh.md) | [日本語](docs/i18n/ja.md) | [Русский](docs/i18n/ru.md) |
+| [العربية](docs/i18n/ar.md) | | | |
+
+`scripts/check-i18n.sh` verifies that every translation lists the same domains as
+`skills.sh.json` and the same skill count, so a translation cannot silently fall
+behind the collection. Adding a language is a new file plus one line in
+[`docs/i18n/README.md`](docs/i18n/README.md), with no code change.
+
+## Platform support, stated rather than claimed
+
+[`docs/platforms.md`](docs/platforms.md) separates what is **verified** from what
+is **structural** from what is **not true yet**, including the distribution
+channels that are real, the one MCP claim this repository deliberately does not
+make because it described a resource removed before the specification was final,
+and the five platform-specific defects this repository shipped and could not see
+from the platform it was written on.
+
+The short version: the **skills** are platform-independent by construction,
+because they are Markdown files with no runtime. The **tooling** is not, and that
+is where the differences are documented.
+
 ## Keeping it current
 
 A collection that stops updating stops being a reference. Three mechanisms keep
@@ -228,6 +263,8 @@ broken, and a check that cries wolf gets ignored.
 scripts/check-upstream.sh            # report drift, change nothing
 scripts/check-upstream.sh --accept   # record the current fingerprint
 scripts/check-upstream.sh --status   # print what is on record
+
+scripts/check-i18n.sh                # verify every translation matches the collection
 ```
 
 Read the specification diff before accepting a new fingerprint. The fingerprint is
@@ -983,6 +1020,8 @@ dist/                       generated HTTP catalog with descriptions
 
 VERSION  CHANGELOG.md       release version and English release notes
 spec/upstream.sha256        fingerprint of the specification this collection targets
+docs/i18n/                  translated entry points, one per language
+docs/platforms.md            verified, structural, and not-yet-true support
 docs/authoring.md           the contract every skill follows
 docs/catalog.md             generated: all skills, routing sentences, provenance
 agents.json                 machine-readable agent and protocol support matrix
@@ -998,6 +1037,7 @@ scripts/sync-rules.sh       generate flat rule files for non-spec agents
 scripts/build-catalog.sh    build dist/index.json and the update manifest
 scripts/build-catalog-doc.sh generate docs/catalog.md
 scripts/check-upstream.sh   detect upstream specification drift
+scripts/check-i18n.sh       verify translations are in step with the collection
 scripts/release.sh          cut a release behind every gate
 tests/run-tests.sh          23-case regression suite for the validator
 install.sh                  install into any of 14 agents, local or global
@@ -1021,6 +1061,7 @@ scripts/build-catalog.sh        # build dist/ for remote agents
 scripts/build-catalog-doc.sh    # regenerate docs/catalog.md
 scripts/check-upstream.sh       # detect drift in the Agent Skills specification
 scripts/check-upstream.sh --accept
+scripts/check-i18n.sh                # verify every translation lists the same domains
 scripts/release.sh 1.2.0        # cut a release: run every gate, then tag
 tests/run-tests.sh              # regression-test the validator itself
 install.sh                      # install into any agent

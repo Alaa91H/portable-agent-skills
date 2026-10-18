@@ -39,6 +39,9 @@ jobs:
       - name: Check the documentation catalog matches the skills
         run: scripts/build-catalog-doc.sh --check
 
+      - name: Check every translation matches the collection
+        run: scripts/check-i18n.sh
+
       - name: Regression-test the validator itself
         run: tests/run-tests.sh
 
