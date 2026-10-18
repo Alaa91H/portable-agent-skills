@@ -480,22 +480,27 @@ fi
     }
 
     # A stale count in the prose, with the marker left correct. This is the
-    # exact shape of the drift that got through. The delimiter is @ rather than
-    # the usual / because the text being matched is a markdown table row and
-    # every character you would reach for as a delimiter is already in it.
-    sed -i 's@| Habilidades | 83, en 18 dominios |@| Habilidades | 79, en 18 dominios |@' "$es"
+    # exact shape of the drift that got through.
+    #
+    # The planted value is 79 and the search is a pattern, not a literal. An
+    # earlier version of this case named the live skill count, which meant it
+    # silently stopped matching the moment a skill was added and the case began
+    # passing because nothing was planted at all. 79 cannot be skills, clusters
+    # or agents in this repository, and the skill count only rises, so it stays
+    # invalid. The pattern matches whatever the current count is.
+    sed -i 's@[0-9][0-9], en 18 dominios@79, en 18 dominios@' "$es"
     i18n_case i18n-stale-prose-count "$es" 'prose states a count'
     heal_i18n
 
-    # The same drift in Arabic-Indic digits, U+0667 U+0669 for 79. They are
-    # written as literals rather than as printf '\u0667' escapes, which expand
-    # under bash 5 but silently emit the backslash form under the Git Bash this
-    # suite runs in, and a substitution that matches nothing is not a test.
+    # The same drift in Arabic-Indic digits. Written as a single unsplit token
+    # the digit list does not word-split under Git Bash and the normalisation
+    # silently becomes a no-op, which is what this case exists to catch.
     #
-    # Written as a single unsplit token the digit list does not word-split under
-    # Git Bash, so the checker's normalisation becomes a no-op and this case is
-    # what catches that going unnoticed.
-    sed -i 's/٨٣/٧٩/' "$ar"
+    # The pattern takes the first two-digit Arabic-Indic run rather than a
+    # literal, for the same reason as above. Without the trailing g it replaces
+    # one occurrence, and if the file is reordered so that is the agent count
+    # instead, the case still plants an invalid number and still holds.
+    sed -i 's/[٠-٩][٠-٩]/٧٩/' "$ar"
     i18n_case i18n-stale-arabic-count "$ar" 'prose states a count'
     heal_i18n
 
@@ -503,6 +508,59 @@ fi
     printf '# orphan\n' > "$ROOT/docs/i18n/it.md"
     i18n_case i18n-undeclared-language "$ROOT/docs/i18n/it.md" 'not declared'
     rm -f "$ROOT/docs/i18n/it.md"
+
+    trap heal_index EXIT
+  fi
+
+  # ------------------------------------------------ every skill is in a cluster
+  #
+  # This one only runs against the real repository, because the validator skips
+  # it whenever SKILLS_DIR is pointed at a fixture. It therefore has to modify
+  # a committed file, and it heals the file on exit the same way the exec-bit
+  # case heals the git index: a test that can leave the repository broken is
+  # worse than the defect it checks for.
+  if [ -f "$ROOT/skills.sh.json" ]; then
+    clusters="$ROOT/skills.sh.json"
+    cp "$clusters" "$TMP/clusters.keep"
+    heal_clusters() { cp "$TMP/clusters.keep" "$clusters"; }
+    trap heal_clusters EXIT
+
+    cluster_case() {
+      local name="$1" needle="$2" out rc
+      out="$(cd "$ROOT" && bash scripts/validate-skills.sh --strict 2>&1)"; rc=$?
+      if [ "$rc" != 0 ] && printf '%s' "$out" | grep -qF -- "$needle"; then
+        printf '  %sok%s    %s\n' "$GRN" "$RST" "$name"
+        passes=$((passes + 1))
+      else
+        printf '  %sFAIL%s  %-24s exit %s, output did not mention %s\n' "$RED" "$RST" "$name" "$rc" "$needle"
+        printf '%s\n' "$out" | sed 's/^/          /'
+        failures=$((failures + 1))
+      fi
+    }
+
+    # A skill that exists but is grouped nowhere. It still validates, still
+    # builds, and still passes every other gate; it is simply never installed
+    # by --only and never appears in any translated domain list.
+    #
+    # Removing an existing id is the only way to produce this direction. Adding
+    # a name to the clusters file produces the opposite drift, which is the
+    # next case. The victim is read out of the file rather than named, so this
+    # does not need editing every time a skill is added.
+    victim="$(awk '/"skills": \[/ { inside = 1; next }
+                   inside && match($0, /"[a-z0-9-]+"/) { print substr($0, RSTART + 1, RLENGTH - 2); exit }' "$clusters")"
+    if [ -n "$victim" ]; then
+      sed -i "/\"$victim\"/d" "$clusters"
+      cluster_case cluster-skill-missing "is on disk but in no cluster"
+      heal_clusters
+    else
+      printf '  %sFAIL%s  %-24s could not find a skill id to remove from %s\n' "$RED" "$RST" cluster-skill-missing skills.sh.json
+      failures=$((failures + 1))
+    fi
+
+    # The other direction: an entry that groups a skill which does not exist.
+    sed -i '0,/^      "skills": \[$/s//&\n        "skill-that-does-not-exist",/' "$clusters"
+    cluster_case cluster-orphan-entry 'no such skill exists'
+    heal_clusters
 
     trap heal_index EXIT
   fi

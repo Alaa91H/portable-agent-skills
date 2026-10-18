@@ -1,8 +1,8 @@
 # Essential Agent Skills — 简体中文
 
-<!-- i18n: lang=zh clusters=18 skills=83 -->
+<!-- i18n: lang=zh clusters=18 skills=84 -->
 
-一套经过审校与验证的 **83 个 Agent 技能**，覆盖软件工作的完整链路：决定要做什么、
+一套经过审校与验证的 **84 个 Agent 技能**，覆盖软件工作的完整链路：决定要做什么、
 以测试先行方式实现、提交评审、发布、运行维护，以及编写自己的技能。
 
 每个技能都遵循开放的
@@ -18,7 +18,7 @@ cd portable-agent-skills && ./install.sh
 
 | | |
 | --- | --- |
-| 技能 | 83 个，覆盖 18 个领域 |
+| 技能 | 84 个，覆盖 18 个领域 |
 | Agent | 14 个已验证的安装目标 |
 | 格式 | 纯 Markdown，无依赖 |
 | 许可 | MIT |
@@ -68,7 +68,7 @@ cd portable-agent-skills && ./install.sh
 ./install.sh claude --global     # Claude Code
 ./install.sh codex --global      # OpenAI Codex
 ./install.sh cursor --global     # Cursor
-./install.sh --list              # 查看 83 个技能标识符
+./install.sh --list              # 查看 84 个技能标识符
 ./install.sh --update            # 获取最新版本
 ```
 

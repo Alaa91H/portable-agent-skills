@@ -168,6 +168,7 @@
       "title": "Checking your own work",
       "description": "Writing gates that can actually fail, and the shell primitives underneath them that quietly do not.",
       "skills": [
+        "progress-and-course-correction",
         "self-critique-and-polish",
         "trustworthy-checks",
         "shell-and-text-tooling"

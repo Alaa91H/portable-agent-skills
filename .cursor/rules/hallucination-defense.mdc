@@ -126,6 +126,38 @@ The most common drift is answering the general version of a specific question. A
 specific question has a specific answer; the general one has a list, and a list
 feels productive.
 
+## Drift accumulates, and every step of it looks fine
+
+The version above is drift inside one answer, which is visible because you can
+hold both ends in view at once. The severe version is drift *across* a long
+task, and it is invisible for exactly that reason:
+
+```
+Goal:     fix the failing test
+Step 3:   reasonable, and while here the typo in that string
+Step 9:   reasonable, and this helper really should be generic
+Step 20:  reasonable, and now the module boundaries are clearer
+Result:   a refactor nobody asked for, and the test still fails
+```
+
+Each step was locally faithful to the step before it. That is what makes it
+dangerous — the chain has no moment where anyone can point and say *that*, and
+the goal is gone long before anyone notices it is gone.
+
+Three things catch it, and only the first is obvious:
+
+1. **Restate the goal at every boundary**, not once at the start. A task long
+   enough to drift is long enough to outlive the sentence you started with.
+   Boundaries are: after a plan is agreed, after a phase completes, after
+   compaction, and before any change you cannot cheaply revert.
+2. **The restatement test.** After N steps, state the original goal in one
+   sentence *without reading your notes*. If you need the notes, the goal is
+   already gone and the notes are now the only copy.
+3. **The unrequested-change ledger.** Keep the list of things you changed that
+   nobody asked for. It should be empty or deliberately justified. It is never
+   empty by accident, and it is the only artefact that shows the total scope at
+   the end rather than at each step where it looked small.
+
 ## The confident-plausible trap
 
 Some output is wrong in a way that reads as correct, because it is composed of
@@ -181,3 +213,6 @@ everything else, and the reader cannot tell which they are looking at.
 | "It answers what they probably meant." | Drift is answering what you meant. Answer what was asked. |
 | "The number is close enough." | Close enough to be copied into a config and debugged next week. |
 | "It is a well-known library." | Familiarity is exactly how version-specific facts feel certain and wrong. |
+| "Every step was reasonable." | Reasonable steps in a chain lead nowhere in particular. Judge the chain. |
+| "I restated the goal at the start." | A task long enough to drift is long enough to outlive that sentence. |
+| "It is just a small cleanup." | That is the sentence drift is built from. Nine of them is a rewrite. |

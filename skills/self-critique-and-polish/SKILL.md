@@ -74,6 +74,78 @@ Two properties make it work rather than spin:
 - **Stop when the named defects run out**, not when the text looks good. Good
   looking is not a signal.
 
+## A study has a shape; a mood does not
+
+"Find everything that could be better" is a mood with a schedule attached. It
+produces activity, no list, and no order, which is why it never converges.
+
+A study is the same work done as a procedure, and it fits on one page:
+
+```
+1. enumerate across fixed axes     -- coverage comes from the axes, not recall
+2. write each finding on one line  -- name the defect, not the feeling
+3. attach evidence to each         -- file and line, or the failing case
+4. rank by payoff against cost     -- cheapest real fix first
+5. fix in rank order, one at a time
+6. re-enumerate, and repeat from 1
+```
+
+The axes are the part that matters, and they should be written down **before** the
+first pass:
+
+| Axis | The question it answers |
+| --- | --- |
+| Correctness | Does it do the right thing? |
+| Completeness | What was asked for and is missing? |
+| Clarity | Could a competent stranger act on this? |
+| Consistency | Does it match what surrounds it? |
+| Cost | What does it cost to run, read, and change? |
+| Safety | What breaks when it is wrong, or under load? |
+| Fitness | Was this the right approach at all? |
+
+Enumerating the axes beats brainstorming on one specific ground: brainstorming
+finds what you expected to find. The axes are fixed in advance, so the axis you
+forgot to worry about still gets asked about. Most missed findings live on an
+axis nobody brought up.
+
+Two rules keep the list usable. Every finding names a specific defect — not "the
+error handling could be better", but "line 88 catches and returns null, so the
+caller cannot distinguish empty from failed". And **a finding with no evidence
+is not a finding**, it is a worry; drop it or go and get the evidence.
+
+## "Improve until nothing more can be added" cannot be finished
+
+This goal is worth taking seriously enough to say what is wrong with it, because
+it sounds like rigour and is actually the absence of an exit.
+
+A goal you cannot recognise as finished cannot be finished. Work under such a goal
+does not converge, it churns: each pass finds something, the something is small,
+and no pass is ever permitted to end because nobody defined the end. The tell is
+that the list regenerates rather than shrinks. After four passes a real
+improvement study has almost nothing left. A process still finding high-value
+work after four passes is not working well, it is producing work.
+
+The reachable version of the same ambition:
+
+> Improve until the ranked list is empty. Re-enumerate once more. Stop if it
+> comes back empty. If it comes back with one trivial item, that is not
+> convergence — it is a treadmill, and the item is what you are paying to learn
+> that.
+
+Re-enumeration is the only honest test available, because it is the only one that
+asks the question in the other direction: not "can I find more?" but "does this
+still find things when I stop looking?"
+
+And good enough is a decision, not a feeling. Name the axes you are **not**
+going to push on, and why. Time is one. Readability for a reader who does not
+exist yet is another. Both are legitimate stopping points, and writing them down
+is what separates a decision from an excuse.
+
+The difference between these two goals is the difference between a review and a
+ratchet. The first ends with a list that is empty and a stopping point you can
+state. The second ends when you run out of energy, having spent it on changes
+nobody asked for.
+
 ## Distinguish polish from correctness
 
 They get confused, and polishing something broken is wasted effort that delays the
@@ -113,3 +185,6 @@ Past that point, further polishing is preference, and preference has a budget.
 | "It needs more polish." | Say which line, and what wrong about it. Otherwise it is taste. |
 | "I will keep improving it." | Without a named defect you cannot tell improvement from churn. |
 | "It is readable, so it is correct." | Readability is not a property of correctness. |
+| "Keep improving until nothing more can be found." | You cannot recognise that goal as finished, so it churns. |
+| "The list is always full of small things." | A list that regenerates instead of shrinking is a treadmill. |
+| "I will brainstorm improvements." | Brainstorming finds what you expected. Enumerate fixed axes instead. |

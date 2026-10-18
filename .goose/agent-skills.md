@@ -68,6 +68,7 @@ to use it, not what to do.
 - **performance-profiling** — Use when a program is slow or memory grows, or when profiling CPU.
 - **planning-before-implementation** — Use when a task needs a plan or breakdown before code is written.
 - **privacy-and-data-retention** — Use when handling personal data, deletion or retention rules.
+- **progress-and-course-correction** — Use when work is in progress and drifting from its goal, or effort is being wasted.
 - **prompt-injection-defense** — Use when an LLM reads untrusted content or acts on model output.
 - **property-based-testing** — Use when testing structured or invalid input, or examples miss bugs.
 - **quality-gates-and-tests** — Use when setting up CI gates, E2E tests, coverage targets, or judging test strength.

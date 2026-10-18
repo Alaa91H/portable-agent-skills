@@ -1,6 +1,6 @@
 # Essential Agent Skills
 
-A curated, validated collection of **83 agent skills** covering the full arc of
+A curated, validated collection of **84 agent skills** covering the full arc of
 software work: deciding what to build, building it test-first, getting it
 reviewed, shipping it, running it, operating it, and writing skills of its own.
 
@@ -13,7 +13,7 @@ with any agent out of the box.
 git clone https://github.com/Alaa91H/portable-agent-skills.git && cd portable-agent-skills && ./install.sh
 ```
 
-Current release: **1.1.0** · 83 skills · 18 domains · 14 agents · MIT
+Current release: **1.1.0** · 84 skills · 18 domains · 14 agents · MIT
 
 Every day the [daily workflow](.github/workflows/daily.yml) re-verifies the
 collection, rebuilds the catalog, and watches the upstream specification for
@@ -1008,7 +1008,7 @@ or `tools`, because a role does not tell an agent when to load anything.
 ## Repository layout
 
 ```text
-.opencode/skills/          canonical skill source, 83 skills
+.opencode/skills/          canonical skill source, 84 skills
 skills/ .claude/ .agents/ .github/ .cursor/ .devin/ .cline/    generated mirrors
 .cursor/rules/ .roo/rules/ .windsurf/rules/ .devin/rules/
 .cline/rules/ .trae/rules/                            generated on-demand rules

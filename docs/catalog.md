@@ -10,7 +10,7 @@ The routing sentence is the skill's exact `description`. Changing it changes whe
 the agent reaches for the skill, so treat it as reviewed surface rather than
 incidental wording.
 
-83 skills, grouped by cluster.
+84 skills, grouped by cluster.
 
 
 ## Craft and process
@@ -196,6 +196,7 @@ Writing gates that can actually fail, and the shell primitives underneath them t
 
 | Skill | Routes when |
 | --- | --- |
+| `progress-and-course-correction` | Use when work is in progress and drifting from its goal, or effort is being wasted. |
 | `self-critique-and-polish` | Use when reviewing your own output before delivery, or polishing work. |
 | `trustworthy-checks` | Use when writing a validator, gate, or CI check, or one passes suspiciously. |
 | `shell-and-text-tooling` | Use when writing shell scripts, grep/sed/awk, or file-scanning tools. |

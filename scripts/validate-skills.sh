@@ -315,6 +315,41 @@ done
 
 [ "$found" -eq 1 ] || fail "no skills found in $SKILLS_DIR"
 
+# ------------------------------------------------------- cluster membership
+# skills.sh.json is what groups the skills for the installer, the catalog and
+# every translated domain list. Nothing in the generator fails when a skill is
+# missing from it: the skill is simply never grouped, never installed by
+# --only, and missing from all eight translations, with no error anywhere.
+#
+# That was found by accident, after reverting one file and noticing the totals
+# no longer reconciled. Every other defect this validator catches was caught on
+# purpose, which is an argument for checking it rather than waiting again.
+if [ "$SKILLS_DIR_OVERRIDDEN" -eq 0 ] && [ -f skills.sh.json ]; then
+  section "cluster membership"
+
+  # Kebab-case quoted tokens are skill ids. Cluster titles all contain a space,
+  # so they cannot match, which is what makes this safe to extract crudely.
+  listed="$(grep -oE '"[a-z0-9]+(-[a-z0-9]+)+"' skills.sh.json | tr -d '"' | sort -u)"
+  ERRORS_BEFORE_CLUSTERS=$ERRORS
+
+  for id in "${ALL_IDS[@]}"; do
+    printf '%s\n' "$listed" | grep -qx "$id" \
+      || fail "cluster: '$id' is on disk but in no cluster in skills.sh.json"
+  done
+
+  while read -r orphan; do
+    [ -n "$orphan" ] || continue
+    [ -f "$SKILLS_DIR/$orphan/SKILL.md" ] \
+      || fail "cluster: '$orphan' is listed in skills.sh.json but no such skill exists"
+  done <<EOF
+$listed
+EOF
+
+  if [ "$ERRORS" -eq "$ERRORS_BEFORE_CLUSTERS" ]; then
+    pass "every skill is in a cluster, and every cluster entry exists"
+  fi
+fi
+
 # ------------------------------------------------------------------ catalog
 # The catalog describes the repository's canonical skills, so it is only
 # meaningful when validating the repository itself. Pointing SKILLS_DIR at a

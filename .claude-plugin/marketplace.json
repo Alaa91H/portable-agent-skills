@@ -4,7 +4,7 @@
     "name": "Alaa91H"
   },
   "metadata": {
-    "description": "83 validated Agent Skills covering craft and process, testing and review, working in a codebase, version control, interfaces and accessibility, APIs and integrations, data and storage, data engineering, infrastructure and operations, platform operations, performance and concurrency, reliability and lifecycle, security, and agent engineering, agent limits, and trustworthy output. Validated against the open Agent Skills specification and mirrored for every agent discovery convention.",
+    "description": "84 validated Agent Skills covering craft and process, testing and review, working in a codebase, version control, interfaces and accessibility, APIs and integrations, data and storage, data engineering, infrastructure and operations, platform operations, performance and concurrency, reliability and lifecycle, security, and agent engineering, agent limits, and trustworthy output. Validated against the open Agent Skills specification and mirrored for every agent discovery convention.",
     "version": "1.1.0"
   },
   "plugins": [
