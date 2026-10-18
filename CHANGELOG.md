@@ -74,6 +74,19 @@ correction is stated inside the skill with its reasoning.
   and passed, because the absence of a failure looks like a success.
 - **The language loop in `check-i18n.sh` ran in a subshell**, discarding the
   error count, via an `IFS` dance that is replaced with a redirected `while read`.
+- **The Arabic drift plant used a locale-dependent bracket range.** Under a `C`
+  locale, `sed 's/[٠-٩][٠-٩]/…/'` cannot express the range and matches nothing,
+  so the file was never planted and the case passed because the absence of a
+  failure looks like a success. It is built the way the checker builds its own
+  normalisation now: one literal substitution per character.
+- **The cluster regression cases modified a committed file** and restored it
+  from a trap, which only works if the run reaches its end. An interrupted run
+  left the repository with a skill missing from its cluster. The validator takes
+  `CLUSTERS_FILE` now, so the cases point it at a copy.
+- **Failing cases are reported as GitHub Actions annotations.** Log output for a
+  public repository is unreadable without authentication, so a red run used to
+  say that something broke and nothing about what. Annotations are served by the
+  check-runs API without authentication.
 
 ---
 
