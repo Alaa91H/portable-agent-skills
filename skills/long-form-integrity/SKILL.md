@@ -1,6 +1,6 @@
 ---
 name: long-form-integrity
-description: Use before finishing any long generated answer — a report, a digest, a research write-up. Checks the text for repetition collapse, glued fields, and content that stopped mid-sentence, so a broken answer is never presented as a finished one.
+description: Use when finishing a long generated answer, report, digest or write-up.
 ---
 
 # Long-form integrity

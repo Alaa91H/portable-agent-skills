@@ -5,6 +5,18 @@ description: "Use when an agent may invent facts, drift from the request, or out
 
 # Hallucination defense
 
+## Scope
+
+This covers **how the error is prevented**: why an unverified claim produces the
+same feeling as a verified one, the order in which to resolve a
+version-specific fact, and the structural habits that make an ungrounded claim
+hard to state in the first place. It is written for engineering work, where the
+failure is code written against an API that was renamed two majors ago.
+
+For the **delivery** discipline — the Read/Stated/Inferred classification of what
+you write, link and number handling, and confidence wording in research output —
+see `evidence-first-writing`.
+
 ## Three failures, one confusion
 
 They get treated as one problem and they are not, because the defences differ.

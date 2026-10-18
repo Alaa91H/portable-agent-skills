@@ -10,7 +10,7 @@ The routing sentence is the skill's exact `description`. Changing it changes whe
 the agent reaches for the skill, so treat it as reviewed surface rather than
 incidental wording.
 
-74 skills, grouped by cluster.
+77 skills, grouped by cluster.
 
 
 ## Craft and process
@@ -45,12 +45,12 @@ Orienting yourself, getting it running, keeping it current, and keeping its stru
 | Skill | Routes when |
 | --- | --- |
 | `onboarding-unfamiliar-codebase` | Use when opening an unfamiliar repository, or orienting in one. |
-| `environment-bootstrap` | Use when setting up a dev environment, installing dependencies or running it. |
+| `environment-bootstrap` | Use when setting up a dev environment, or installing dependencies. |
 | `domain-modeling` | Use when identifying domain concepts, business rules, or unclear vocabulary. |
 | `improving-codebase-architecture` | Use when reviewing codebase structure, duplication or refactor priority. |
 | `writing-technical-docs` | Use when updating a README, architecture notes or API reference. |
 | `codebase-decomposition` | Use when a file has grown large, or deciding where behaviour belongs. |
-| `up-to-date-tooling` | Use when choosing a library or API, recalling a version, or adopting newer tooling. |
+| `up-to-date-tooling` | Use when choosing a library or API, recalling a version, or adopting new tooling. |
 
 ## Version control
 
@@ -70,7 +70,7 @@ Building and reviewing interfaces, including localisation and WCAG conformance.
 | Skill | Routes when |
 | --- | --- |
 | `frontend-design` | Use when building or restyling an interface, component or page. |
-| `css-architecture` | Use when setting up design tokens, growing a stylesheet or choosing styling. |
+| `css-architecture` | Use when setting up design tokens, growing a stylesheet, or choosing styling. |
 | `web-design-guidelines` | Use when reviewing UI code against interface, accessibility or UX. |
 | `accessibility-audit` | Use when auditing a page or component for WCAG, screen readers, or keyboards. |
 | `localization-i18n` | Use when adding translations, plurals, or date and number formats. |
@@ -82,7 +82,7 @@ HTTP and GraphQL contracts, versioning, webhooks, authentication, and payments.
 | Skill | Routes when |
 | --- | --- |
 | `rest-api-design` | Use when designing or reviewing an HTTP API: errors, pagination, idempotency. |
-| `api-contract-versioning` | Use when changing an API in a breaking way, or deciding on a versioning scheme. |
+| `api-contract-versioning` | Use when changing an API in a breaking way, or choosing a versioning scheme. |
 | `graphql-api-security` | Use when exposing or reviewing a GraphQL API, or when it is abused. |
 | `webhook-integration` | Use when sending or receiving webhooks, or verifying signatures. |
 | `oauth-authentication` | Use when implementing login, tokens, sessions, or OAuth flows. |
@@ -96,7 +96,7 @@ Queries, schema changes, caching, and background processing.
 | --- | --- |
 | `sql-query-performance` | Use when a query is slow, an index is missing, or a table is large. |
 | `database-migrations` | Use when running schema migrations or backfills that block queries. |
-| `caching-and-stampedes` | Use when adding or tuning a cache, or when a hot key overwhelms the database. |
+| `caching-and-stampedes` | Use when adding or tuning a cache, or when a hot key overwhelms a database. |
 | `message-queue-processing` | Use when writing queue consumers, workers, retries or dead letters. |
 
 ## Data engineering
@@ -116,10 +116,10 @@ Containers, orchestration, infrastructure code, pipelines, hosts, and incidents.
 
 | Skill | Routes when |
 | --- | --- |
-| `docker-containerization` | Use when writing a Dockerfile, or debugging image size, cache, or signals. |
-| `kubernetes-deployment` | Use when writing or reviewing Kubernetes manifests or probes. |
+| `docker-containerization` | Use when writing a Dockerfile, or debugging image size, cache or signals. |
+| `kubernetes-deployment` | Use when writing or reviewing Kubernetes manifests, probes or rollouts. |
 | `infrastructure-as-code` | Use when writing Terraform or infrastructure code, or diagnosing drift. |
-| `ci-pipeline-security` | Use when writing or reviewing CI workflows, or assessing supply chain risk. |
+| `ci-pipeline-security` | Use when writing or reviewing CI workflows, or supply chain risk. |
 | `linux-ops-debugging` | Use when debugging a Linux host, systemd unit, disk, or SSH. |
 | `incident-response` | Use when responding to a production incident, outage or alert. |
 
@@ -153,7 +153,7 @@ Shipping, recovering, scheduling, and handling the data you hold about people.
 | --- | --- |
 | `release-engineering` | Use when cutting a release, writing a changelog, or a rollback plan. |
 | `backup-and-disaster-recovery` | Use when designing backups, recovery objectives, or planning for data loss. |
-| `background-jobs-and-scheduling` | Use when adding cron or a job queue, or when jobs overlap, drift, or run twice. |
+| `background-jobs-and-scheduling` | Use when adding cron or a job queue, or when jobs overlap or run twice. |
 | `privacy-and-data-retention` | Use when handling personal data, deletion or retention rules. |
 
 ## Security
@@ -174,9 +174,9 @@ Building on language models, and writing, serving and dispatching agent skills.
 | Skill | Routes when |
 | --- | --- |
 | `llm-application-development` | Use when building on language models: retrieval, prompts, evaluation. |
-| `mcp-server-authoring` | Use when building an MCP server or tool, or agent capabilities. |
+| `mcp-server-authoring` | Use when building an MCP server or tool, or exposing agent capabilities. |
 | `writing-agent-skills` | Use when authoring or debugging an agent skill, or fixing triggers. |
-| `dispatching-parallel-agents` | Use when independent work could run concurrently, or split across subagents. |
+| `dispatching-parallel-agents` | Use when independent work could run concurrently, or across subagents. |
 
 ## Cross-cutting correctness
 
@@ -193,7 +193,7 @@ Writing gates that can actually fail, and the shell primitives underneath them t
 
 | Skill | Routes when |
 | --- | --- |
-| `trustworthy-checks` | Use when writing a validator, gate, or CI check, or when a check passes and you doubt it. |
+| `trustworthy-checks` | Use when writing a validator, gate, or CI check, or when a check passes suspiciously. |
 | `shell-and-text-tooling` | Use when writing shell scripts, grep/sed/awk, or file-scanning tooling. |
 
 ## Working within an agent's limits
@@ -205,6 +205,16 @@ Spending a context window well, surviving compaction, and never stating anything
 | `token-and-context-budget` | Use when a task is large, or when deciding what to read, delegate or write. |
 | `context-window-management` | Use when work must survive compaction, or a long task loses coherence. |
 | `hallucination-defense` | Use when an agent may invent facts, drift from the request, or output must be grounded. |
+
+## Producing trustworthy output
+
+The last mile: what goes into an answer, how it is sourced, and how to catch text that stopped working.
+
+| Skill | Routes when |
+| --- | --- |
+| `evidence-first-writing` | Use when an answer states a fact, figure, link, or claim about a third party. |
+| `long-form-integrity` | Use when finishing a long generated answer, report, digest or write-up. |
+| `arabic-news-briefing` | Use when writing an Arabic news briefing, daily digest, or round-up. |
 
 ---
 

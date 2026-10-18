@@ -1,0 +1,61 @@
+---
+name: evidence-first-writing
+description: Use when an answer states a fact, figure, link, or claim about a third party.
+---
+
+# Evidence first
+
+Most damaged answers are not wrong because the model knew nothing. They are wrong
+because a plausible sentence was written where a fact should have been.
+
+## Scope
+
+This governs **what you write**: the classification of every factual statement,
+the links, the numbers, and the confidence wording. It is a delivery discipline
+for research, news, comparisons and audits.
+
+For the **mechanism** — why an unverified claim feels as certain as a verified
+one, and the order in which to check a version-specific fact before writing code
+against it — see `hallucination-defense`. The two overlap by exactly one
+requirement, that a claim be traceable to something you opened, and they are not
+substitutes: this one classifies the claim after you have it, that one stops you
+producing a claim you never had.
+
+## The rule
+
+Every factual statement you deliver must be one of:
+
+1. **Read** — you opened a source and it says this.
+2. **Stated** — someone else stated it; you name who.
+3. **Inferred** — you say plainly that this is your inference.
+
+If a statement cannot be one of those three, it does not go in the answer.
+
+## Links
+
+- Only link a URL you actually opened.
+- One link per claim, from the primary source: the vendor page, the release
+  note, the advisory — not a summary of a summary.
+- Never construct a plausible-looking URL. A wrong link is worse than no link.
+- If the primary source was unreachable, write "لم يُفتح المصدر" on that item.
+
+## Numbers
+
+- A figure is reported with the figure's own qualifiers: "نحو"، "قرابةً"، "حسب".
+- Never round silently into a different claim.
+- A benchmark number without its source and date is not a fact.
+
+## Uncertainty
+
+Confidence is stated per item, not once for the whole answer. When two sources
+disagree, say so and give both. When you are unsure, the sentence says you are
+unsure — an honest "لم أتحقق" costs nothing and a caught invention costs the
+whole answer's credibility.
+
+## Self-check before delivering
+
+1. Every link: did I open it?
+2. Every number: did a source state it?
+3. Every name: spelled correctly, from the source, not from memory?
+4. Any sentence mixing scripts inside Arabic prose? Rewrite it.
+5. Does the answer claim certainty anywhere it only has a source's headline?

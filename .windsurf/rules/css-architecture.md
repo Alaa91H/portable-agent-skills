@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when setting up design tokens, growing a stylesheet or choosing styling."
+description: "Use when setting up design tokens, growing a stylesheet, or choosing styling."
 ---
 
 

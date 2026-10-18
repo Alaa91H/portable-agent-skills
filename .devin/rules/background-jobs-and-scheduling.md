@@ -1,5 +1,5 @@
 ---
-description: "Use when adding cron or a job queue, or when jobs overlap, drift, or run twice."
+description: "Use when adding cron or a job queue, or when jobs overlap or run twice."
 ---
 
 

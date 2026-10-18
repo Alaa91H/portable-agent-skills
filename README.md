@@ -1,6 +1,6 @@
 # Essential Agent Skills
 
-A curated, validated collection of **74 agent skills** covering the full arc of
+A curated, validated collection of **77 agent skills** covering the full arc of
 software work: deciding what to build, building it test-first, getting it
 reviewed, shipping it, running it, operating it, and writing skills of its own.
 
@@ -13,7 +13,7 @@ with any agent out of the box.
 git clone https://github.com/Alaa91H/portable-agent-skills.git && cd portable-agent-skills && ./install.sh
 ```
 
-Current release: **1.1.0** · 74 skills · 17 domains · 14 agents · MIT
+Current release: **1.1.0** · 77 skills · 18 domains · 14 agents · MIT
 
 Every day the [daily workflow](.github/workflows/daily.yml) re-verifies the
 collection, rebuilds the catalog, and watches the upstream specification for
@@ -854,6 +854,35 @@ third state**, and the label is never deleted to tidy the output. Includes the
 highest-risk content list (versions, paths, identifiers, measurements) and the
 rule that fixes it: *open the file, quote the lines you are changing, then edit*.
 
+### Producing trustworthy output
+
+The last mile. Where the previous three constrain what goes *into* an answer,
+these three govern what actually reaches the reader.
+
+**`evidence-first-writing`** — Written by the repository owner, and the sharpest
+tool here for research output. Its rule is a three-way classification every
+factual statement must fall into: **Read** (you opened a source and it says this),
+**Stated** (someone else stated it, and you name who), or **Inferred** (and you
+say so). A statement that is none of the three does not go in the answer. It also
+covers links (only link what you opened, one primary source per claim, and a
+wrong link is worse than no link), numbers (carried with the source's own
+qualifiers, never silently rounded), and **confidence stated per item rather than
+once for the answer**.
+
+**`long-form-integrity`** — The failure nobody looks for, because the output is
+long and looks like work. A model that runs out of useful output does not fail,
+it **repeats itself** — the same phrase, word or line — until the budget ends, and
+the reader concludes the whole system is broken. Covers the signature (`wwwwww`,
+`000000`, tool names leaking into prose, a sentence that starts and never
+finishes) and the check to run before delivering: scan the tail, because that is
+where the loop begins.
+
+**`arabic-news-briefing`** — The shape of a briefing read on a phone by someone
+scanning forty headlines: not an essay, and each item standing alone and skimmable
+in ten seconds. One template per item with **labelled fields** — what happened,
+the details, the context, the analysis separated from the facts, and the source
+URL — so the reader can stop reading at any field without losing the item.
+
 ### Checking your own work
 
 These two came out of building this repository rather than from studying it, and
@@ -919,7 +948,7 @@ or `tools`, because a role does not tell an agent when to load anything.
 ## Repository layout
 
 ```text
-.opencode/skills/          canonical skill source, 74 skills
+.opencode/skills/          canonical skill source, 77 skills
 skills/ .claude/ .agents/ .github/ .cursor/ .devin/ .cline/    generated mirrors
 .cursor/rules/ .roo/rules/ .windsurf/rules/ .devin/rules/
 .cline/rules/ .trae/rules/                            generated on-demand rules

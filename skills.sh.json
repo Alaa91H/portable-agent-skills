@@ -177,6 +177,15 @@
         "context-window-management",
         "hallucination-defense"
       ]
+    },
+    {
+      "title": "Producing trustworthy output",
+      "description": "The last mile: what goes into an answer, how it is sourced, and how to catch text that stopped working.",
+      "skills": [
+        "evidence-first-writing",
+        "long-form-integrity",
+        "arabic-news-briefing"
+      ]
     }
   ]
 }

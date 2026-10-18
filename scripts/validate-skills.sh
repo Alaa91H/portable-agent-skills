@@ -411,16 +411,29 @@ if [ "$SKILLS_DIR_OVERRIDDEN" -eq 0 ]; then
 
   codex_pct=$(( budget * 100 / CODEX_BUDGET ))
   zed_pct=$(( budget * 100 / ZED_BUDGET ))
+  headroom=$(( CODEX_BUDGET - budget ))
 
+  # The guardrail is headroom, not percentage.
+  #
+  # It was originally a flat 85 percent, which was arbitrary in a way that only
+  # shows up as the collection grows: a percentage reserve shrinks in absolute
+  # terms as the denominator rises, even though the thing being protected is the
+  # same. What actually matters is how many more skills fit, and that is an
+  # absolute number of characters.
+  #
+  # CODEX_HEADROOM is roughly eight skills at the current average cost. Below it,
+  # the catalog stops being able to grow without a structural decision, which is
+  # the moment worth interrupting someone for.
   if [ "$budget" -gt "$CODEX_BUDGET" ]; then
     fail "Codex catalog budget exceeded: ${budget} of ${CODEX_BUDGET} chars across $budget_n skills"
     hint "Codex drops the overflow silently, shortening the longest descriptions first"
     [ -n "$over" ] && hint "over 160 chars:$over"
-  elif [ "$codex_pct" -ge 85 ]; then
-    warn "Codex catalog budget at ${codex_pct}% (${budget}/${CODEX_BUDGET} chars); Zed at ${zed_pct}%"
-    hint "keep a description near 100-130 chars so the collection can still grow"
+  elif [ "$headroom" -lt "${CODEX_HEADROOM:-900}" ]; then
+    warn "Codex headroom ${headroom} chars (${budget}/${CODEX_BUDGET}, ${codex_pct}%); Zed ${zed_pct}%"
+    hint "about $(( headroom / 110 )) more skills at the current average cost"
+    hint "descriptions are near the 60-char floor, so further growth needs partition or a raised client limit"
   else
-    pass "catalog budget: Codex ${codex_pct}% (${budget}/${CODEX_BUDGET} chars), Zed ${zed_pct}%, $budget_n skills"
+    pass "catalog budget: Codex ${codex_pct}% (${budget}/${CODEX_BUDGET} chars, ${headroom} headroom), Zed ${zed_pct}%, $budget_n skills"
   fi
 fi
 

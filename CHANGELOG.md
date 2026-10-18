@@ -56,6 +56,21 @@ versioned, automated update path.
 - `git-internals` — reflog recovery, automated bisection, hooks, and submodule
   pointers.
 
+**Producing trustworthy output**
+
+Added by the repository owner, written directly on GitHub and merged in.
+
+- `evidence-first-writing` — every factual statement must be Read, Stated or
+  Inferred, and a statement that is none of the three does not go in the answer.
+  Covers links, numbers, and confidence stated per item rather than once per
+  answer. See `hallucination-defense` for the complementary half: this governs
+  delivery, that one governs prevention.
+- `long-form-integrity` — a model that runs out of useful output does not fail,
+  it repeats itself. Covers the signature and the pre-delivery check, because the
+  failure is invisible in long output that looks like work.
+- `arabic-news-briefing` — the item shape for a briefing scanned on a phone:
+  labelled fields, the analysis separated from the facts, and a real source URL.
+
 **Checking your own work**
 
 - `trustworthy-checks` — writing validators, gates and CI checks that can

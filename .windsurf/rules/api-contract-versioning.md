@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when changing an API in a breaking way, or deciding on a versioning scheme."
+description: "Use when changing an API in a breaking way, or choosing a versioning scheme."
 ---
 
 

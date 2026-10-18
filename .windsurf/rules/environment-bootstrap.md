@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when setting up a dev environment, installing dependencies or running it."
+description: "Use when setting up a dev environment, or installing dependencies."
 ---
 
 

@@ -1,6 +1,6 @@
 # Agent Skills
 
-This repository contains 74 validated Agent Skills.
+This repository contains 77 validated Agent Skills.
 
 If your agent supports the Agent Skills specification (`SKILL.md`), they are
 already discoverable: they live under `.opencode/skills/` and are mirrored into
@@ -10,27 +10,29 @@ this repository's `skills/`, `.claude/skills/`, `.agents/skills/`, and
 If instead you are reading this as a flat instruction file, here is the index:
 
 - **accessibility-audit** — Use when auditing a page or component for WCAG, screen readers, or keyboards.
-- **api-contract-versioning** — Use when changing an API in a breaking way, or deciding on a versioning scheme.
-- **background-jobs-and-scheduling** — Use when adding cron or a job queue, or when jobs overlap, drift, or run twice.
+- **api-contract-versioning** — Use when changing an API in a breaking way, or choosing a versioning scheme.
+- **arabic-news-briefing** — Use when writing an Arabic news briefing, daily digest, or round-up.
+- **background-jobs-and-scheduling** — Use when adding cron or a job queue, or when jobs overlap or run twice.
 - **backup-and-disaster-recovery** — Use when designing backups, recovery objectives, or planning for data loss.
-- **caching-and-stampedes** — Use when adding or tuning a cache, or when a hot key overwhelms the database.
-- **ci-pipeline-security** — Use when writing or reviewing CI workflows, or assessing supply chain risk.
+- **caching-and-stampedes** — Use when adding or tuning a cache, or when a hot key overwhelms a database.
+- **ci-pipeline-security** — Use when writing or reviewing CI workflows, or supply chain risk.
 - **cloud-security-and-cost** — Use when reviewing cloud IAM, network exposure, or reducing cloud spend.
 - **codebase-decomposition** — Use when a file has grown large, or deciding where behaviour belongs.
 - **concurrency-and-async** — Use when writing concurrent code, or diagnosing races and deadlocks.
 - **context-window-management** — Use when work must survive compaction, or a long task loses coherence.
 - **contract-and-load-testing** — Use when writing Pact contract tests, or load testing an API.
-- **css-architecture** — Use when setting up design tokens, growing a stylesheet or choosing styling.
+- **css-architecture** — Use when setting up design tokens, growing a stylesheet, or choosing styling.
 - **database-migrations** — Use when running schema migrations or backfills that block queries.
 - **date-time-handling** — Use when working with dates, time zones, timestamps, or calendar arithmetic.
 - **dbt-modeling** — Use when writing dbt models, incremental models, or fixing a broken build.
 - **dependency-supply-chain-review** — Use when adding or upgrading dependencies, or auditing a lockfile.
 - **dimensional-modeling** — Use when designing a warehouse schema, or a slowly changing dimension.
-- **dispatching-parallel-agents** — Use when independent work could run concurrently, or split across subagents.
-- **docker-containerization** — Use when writing a Dockerfile, or debugging image size, cache, or signals.
+- **dispatching-parallel-agents** — Use when independent work could run concurrently, or across subagents.
+- **docker-containerization** — Use when writing a Dockerfile, or debugging image size, cache or signals.
 - **domain-modeling** — Use when identifying domain concepts, business rules, or unclear vocabulary.
 - **email-deliverability** — Use when sending email, or configuring SPF, DKIM, or DMARC records.
-- **environment-bootstrap** — Use when setting up a dev environment, installing dependencies or running it.
+- **environment-bootstrap** — Use when setting up a dev environment, or installing dependencies.
+- **evidence-first-writing** — Use when an answer states a fact, figure, link, or claim about a third party.
 - **feature-flag-and-secrets-lifecycle** — Use when adding or retiring a feature flag, or rotating secrets.
 - **finishing-a-development-branch** — Use when a branch is ready to merge, hand off, or open a PR.
 - **frontend-design** — Use when building or restyling an interface, component or page.
@@ -41,11 +43,12 @@ If instead you are reading this as a flat instruction file, here is the index:
 - **improving-codebase-architecture** — Use when reviewing codebase structure, duplication or refactor priority.
 - **incident-response** — Use when responding to a production incident, outage or alert.
 - **infrastructure-as-code** — Use when writing Terraform or infrastructure code, or diagnosing drift.
-- **kubernetes-deployment** — Use when writing or reviewing Kubernetes manifests or probes.
+- **kubernetes-deployment** — Use when writing or reviewing Kubernetes manifests, probes or rollouts.
 - **linux-ops-debugging** — Use when debugging a Linux host, systemd unit, disk, or SSH.
 - **llm-application-development** — Use when building on language models: retrieval, prompts, evaluation.
 - **localization-i18n** — Use when adding translations, plurals, or date and number formats.
-- **mcp-server-authoring** — Use when building an MCP server or tool, or agent capabilities.
+- **long-form-integrity** — Use when finishing a long generated answer, report, digest or write-up.
+- **mcp-server-authoring** — Use when building an MCP server or tool, or exposing agent capabilities.
 - **message-queue-processing** — Use when writing queue consumers, workers, retries or dead letters.
 - **mobile-performance-and-release** — Use when a mobile app is slow to start, janky to scroll, or rejected.
 - **oauth-authentication** — Use when implementing login, tokens, sessions, or OAuth flows.
@@ -73,8 +76,8 @@ If instead you are reading this as a flat instruction file, here is the index:
 - **systematic-debugging** — Use when a test or build fails and the cause is not yet known.
 - **test-driven-development** — Use when adding or changing a feature or bugfix that needs tests.
 - **token-and-context-budget** — Use when a task is large, or when deciding what to read, delegate or write.
-- **trustworthy-checks** — Use when writing a validator, gate, or CI check, or when a check passes and you doubt it.
-- **up-to-date-tooling** — Use when choosing a library or API, recalling a version, or adopting newer tooling.
+- **trustworthy-checks** — Use when writing a validator, gate, or CI check, or when a check passes suspiciously.
+- **up-to-date-tooling** — Use when choosing a library or API, recalling a version, or adopting new tooling.
 - **using-git-worktrees** — Use when work should not disturb the checkout, or run branches at once.
 - **verification-before-completion** — Use when about to report work complete, or before committing.
 - **web-design-guidelines** — Use when reviewing UI code against interface, accessibility or UX.

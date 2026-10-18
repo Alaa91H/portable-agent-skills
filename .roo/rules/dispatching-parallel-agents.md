@@ -1,5 +1,5 @@
 ---
-description: "Use when independent work could run concurrently, or split across subagents."
+description: "Use when independent work could run concurrently, or across subagents."
 ---
 
 

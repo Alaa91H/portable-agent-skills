@@ -1,5 +1,5 @@
 ---
-description: "Use when building an MCP server or tool, or agent capabilities."
+description: "Use when building an MCP server or tool, or exposing agent capabilities."
 ---
 
 

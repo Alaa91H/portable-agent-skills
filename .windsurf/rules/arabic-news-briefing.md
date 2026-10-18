@@ -1,7 +1,8 @@
 ---
-name: arabic-news-briefing
-description: Use when writing an Arabic news briefing, daily digest, or research round-up for a reader who scans many short items. Produces one self-contained item per topic with labelled fields, a real source link, and nothing invented.
+trigger: model_decision
+description: "Use when writing an Arabic news briefing, daily digest, or round-up."
 ---
+
 
 # Arabic news briefing
 

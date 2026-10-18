@@ -1,12 +1,25 @@
 ---
-name: evidence-first-writing
-description: Use for any answer that states a fact, a figure, a link, or a claim about a third party — research, news, comparisons, audits. Ties every statement to something actually read, and marks what is unverified instead of smoothing it over.
+description: "Use when an answer states a fact, figure, link, or claim about a third party."
 ---
+
 
 # Evidence first
 
 Most damaged answers are not wrong because the model knew nothing. They are wrong
 because a plausible sentence was written where a fact should have been.
+
+## Scope
+
+This governs **what you write**: the classification of every factual statement,
+the links, the numbers, and the confidence wording. It is a delivery discipline
+for research, news, comparisons and audits.
+
+For the **mechanism** — why an unverified claim feels as certain as a verified
+one, and the order in which to check a version-specific fact before writing code
+against it — see `hallucination-defense`. The two overlap by exactly one
+requirement, that a claim be traceable to something you opened, and they are not
+substitutes: this one classifies the claim after you have it, that one stops you
+producing a claim you never had.
 
 ## The rule
 

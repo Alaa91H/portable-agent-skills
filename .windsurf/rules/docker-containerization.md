@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when writing a Dockerfile, or debugging image size, cache, or signals."
+description: "Use when writing a Dockerfile, or debugging image size, cache or signals."
 ---
 
 
