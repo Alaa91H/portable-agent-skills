@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when auditing a page or component for WCAG conformance, screen-reader support, or keyboard operability, or when accessibility is named as a requirement."
+description: "Use when auditing a page or component for WCAG, screen-reader support, or keyboard operability."
 ---
 
 

@@ -19,11 +19,11 @@ Deciding what to do, doing it test-first, and proving it works.
 
 | Skill | Routes when |
 | --- | --- |
-| `planning-before-implementation` | Use when a task needs more than a trivial edit and no agreed approach exists yet, or when asked to plan, spec, or break down work before implementing. |
-| `writing-acceptance-criteria` | Use when a requirement is ambiguous, when defining done, or before writing tests, so that scope and edge cases are pinned down first. |
-| `test-driven-development` | Use when adding or changing any feature or bugfix that needs tests, or when a test-first workflow is requested. |
-| `systematic-debugging` | Use when a test fails, a build breaks, or behaviour is unexpected, and the cause is not yet known, before any fix is proposed. |
-| `verification-before-completion` | Use when about to report that work is complete, fixed, passing, or done, before committing, pushing, or opening a pull request. |
+| `planning-before-implementation` | Use when a task needs a plan, spec, or breakdown before any code is written. |
+| `writing-acceptance-criteria` | Use when a requirement is ambiguous, or before tests, to pin down scope. |
+| `test-driven-development` | Use when adding or changing a feature or bugfix that needs tests. |
+| `systematic-debugging` | Use when a test or build fails and the cause is not yet known. |
+| `verification-before-completion` | Use when about to report work complete or fixed, or before committing or opening a pull request. |
 
 ## Testing and review
 
@@ -31,11 +31,11 @@ Getting work checked, acting on the feedback, and proving nothing regressed.
 
 | Skill | Routes when |
 | --- | --- |
-| `requesting-code-review` | Use when finishing a feature, a branch, or a substantial change, before merging, to get the work checked against the stated requirements. |
-| `receiving-code-review` | Use when code-review comments have arrived, especially when they conflict with each other or with the implementation. |
-| `property-based-testing` | Use when a function handles structured input, invalid input, numeric edge cases, or serialization, or when example-based tests keep missing real bugs. |
-| `webapp-testing` | Use when verifying a web application in a real browser, debugging a UI issue, or writing end-to-end tests against a running app. |
-| `refactoring-without-breaking-behaviour` | Use when restructuring existing code, reducing duplication, or modernising an interface, where existing tests must keep passing. |
+| `requesting-code-review` | Use when finishing a feature or branch, before merging, to get it reviewed. |
+| `receiving-code-review` | Use when code-review comments arrive, especially when they conflict. |
+| `property-based-testing` | Use when testing structured or invalid input, or when examples keep missing bugs. |
+| `webapp-testing` | Use when verifying a web app in a real browser, or debugging a UI issue. |
+| `refactoring-without-breaking-behaviour` | Use when restructuring code where existing tests must keep passing. |
 
 ## Working in a codebase
 
@@ -43,11 +43,11 @@ Orienting yourself, getting it running, and finding the model underneath the cod
 
 | Skill | Routes when |
 | --- | --- |
-| `onboarding-unfamiliar-codebase` | Use when opening an unfamiliar repository for the first time, or when asked to orient, explore, or understand what a codebase does and where things live. |
-| `environment-bootstrap` | Use when setting up a development environment, installing dependencies, getting a project to build or run locally, or diagnosing a broken local setup. |
-| `domain-modeling` | Use when identifying domain concepts, naming things in a codebase, modelling business rules, or when the code has unclear boundaries and unclear vocabulary. |
-| `improving-codebase-architecture` | Use when asked to review, assess, or improve the structure of a codebase, find coupling or duplication, or decide what to refactor first. |
-| `writing-technical-docs` | Use when writing or updating README, architecture notes, API reference, onboarding guides, or any doc aimed at another developer. |
+| `onboarding-unfamiliar-codebase` | Use when opening an unfamiliar repository, or when asked to orient in a codebase. |
+| `environment-bootstrap` | Use when setting up a dev environment, installing dependencies, or getting a project running. |
+| `domain-modeling` | Use when identifying domain concepts, modelling business rules, or unclear code vocabulary. |
+| `improving-codebase-architecture` | Use when reviewing codebase structure, finding coupling or duplication, or prioritising refactors. |
+| `writing-technical-docs` | Use when writing or updating README, architecture notes, or API reference. |
 
 ## Version control
 
@@ -55,9 +55,9 @@ Branches, worktrees, merges, and getting a branch finished without surprises.
 
 | Skill | Routes when |
 | --- | --- |
-| `using-git-worktrees` | Use when starting work that should not disturb the current checkout, or when several branches need to be worked on at once. |
-| `finishing-a-development-branch` | Use when a branch is ready to merge, open a pull request for, or hand off, and the remaining steps need to be done in order. |
-| `resolving-merge-conflicts` | Use when git reports a conflict, when a rebase stops, or when a merge produces CONFLICT markers in a file. |
+| `using-git-worktrees` | Use when work should not disturb the current checkout, or branches run at once. |
+| `finishing-a-development-branch` | Use when a branch is ready to merge, hand off, or open a pull request. |
+| `resolving-merge-conflicts` | Use when git reports a conflict, a rebase stops, or a merge leaves CONFLICT markers. |
 
 ## Interfaces and accessibility
 
@@ -65,11 +65,11 @@ Building and reviewing interfaces, including localisation and WCAG conformance.
 
 | Skill | Routes when |
 | --- | --- |
-| `frontend-design` | Use when building or restyling a user interface, component, or page, including when the request mentions a design or visual change. |
-| `css-architecture` | Use when setting up design tokens, managing a growing stylesheet, choosing between CSS-in-JS and utility classes, or when a codebase's styles have become hard to change safely. |
-| `web-design-guidelines` | Use when reviewing UI code against interface guidelines, or when a question involves accessibility, layout, interaction, or UX quality. |
-| `accessibility-audit` | Use when auditing a page or component for WCAG conformance, screen-reader support, or keyboard operability, or when accessibility is named as a requirement. |
-| `localization-i18n` | Use when adding translations, supporting multiple languages or locales, handling pluralisation, or formatting dates, numbers, and currency for international users. |
+| `frontend-design` | Use when building or restyling a user interface, component, or page. |
+| `css-architecture` | Use when setting up design tokens, growing a stylesheet, or choosing between styling approaches. |
+| `web-design-guidelines` | Use when reviewing UI code against interface, accessibility, or UX guidelines. |
+| `accessibility-audit` | Use when auditing a page or component for WCAG, screen-reader support, or keyboard operability. |
+| `localization-i18n` | Use when adding translations, handling plurals, or formatting dates and numbers. |
 
 ## APIs and integrations
 
@@ -77,11 +77,11 @@ HTTP and GraphQL contracts, versioning, webhooks, and authentication.
 
 | Skill | Routes when |
 | --- | --- |
-| `rest-api-design` | Use when designing or reviewing an HTTP API, including status code choices, error response bodies, pagination, or idempotency for retried writes. |
-| `api-contract-versioning` | Use when changing an existing API in a breaking way, deciding on a versioning scheme, or handling backward compatibility for clients you do not control. |
-| `graphql-api-security` | Use when exposing or reviewing a GraphQL API, or when a GraphQL endpoint is slow, is being abused, or leaks data it should not. |
-| `webhook-integration` | Use when sending or receiving webhooks, verifying webhook signatures, integrating third-party payment or notification APIs, or handling delivery retries. |
-| `oauth-authentication` | Use when implementing login, token handling, sessions, or OAuth flows, and when choosing between JWT and server-side sessions or storing tokens safely. |
+| `rest-api-design` | Use when designing or reviewing an HTTP API, its errors, pagination, or idempotency. |
+| `api-contract-versioning` | Use when changing an API in a breaking way, or deciding on a versioning scheme. |
+| `graphql-api-security` | Use when exposing or reviewing a GraphQL API, or when it is slow or being abused. |
+| `webhook-integration` | Use when sending or receiving webhooks, or verifying webhook signatures. |
+| `oauth-authentication` | Use when implementing login, token handling, sessions, or OAuth flows. |
 
 ## Data and storage
 
@@ -89,10 +89,10 @@ Queries, schema changes, caching, and background processing.
 
 | Skill | Routes when |
 | --- | --- |
-| `sql-query-performance` | Use when a database query is slow, when an index is missing or unused, or when writing queries against a large table. |
-| `database-migrations` | Use when writing or running database migrations, schema changes, backfills, or when a migration is blocking queries, locking a table, or needs to be rolled back safely. |
-| `caching-and-stampedes` | Use when adding or tuning a cache, when requests overwhelm a database on a hot key, or when diagnosing cache misses, stale reads, and thundering herd problems. |
-| `message-queue-processing` | Use when adding or reviewing message queue consumers, producers, webhooks, or background workers, including retries, idempotency, ordering, and dead letter queues. |
+| `sql-query-performance` | Use when a query is slow, an index is missing, or querying a large table. |
+| `database-migrations` | Use when writing or running schema migrations, backfills, or when a migration blocks queries. |
+| `caching-and-stampedes` | Use when adding or tuning a cache, or when a hot key overwhelms the database. |
+| `message-queue-processing` | Use when writing or reviewing queue consumers, workers, retries, or dead letter queues. |
 
 ## Infrastructure and operations
 
@@ -100,11 +100,11 @@ Containers, orchestration, infrastructure code, pipelines, and incidents.
 
 | Skill | Routes when |
 | --- | --- |
-| `docker-containerization` | Use when writing or reviewing a Dockerfile, composing services, or debugging image size, build cache, container signals, or container runtime permissions. |
-| `kubernetes-deployment` | Use when writing or reviewing Kubernetes manifests, probes, resource limits, rollout configuration, or when diagnosing pods that crashloop or never become ready. |
-| `infrastructure-as-code` | Use when writing Terraform or other infrastructure code, managing cloud resources declaratively, or diagnosing drift between code and a live environment. |
-| `ci-pipeline-security` | Use when writing or reviewing CI workflow files, GitHub Actions configurations, build pipelines, or when evaluating a pipeline for supply chain risk. |
-| `incident-response` | Use when responding to a production incident, outage, or alert, including triage, mitigation, communication, handoff, and writing a postmortem. |
+| `docker-containerization` | Use when writing or reviewing a Dockerfile, or debugging image size, cache, or signals. |
+| `kubernetes-deployment` | Use when writing or reviewing Kubernetes manifests, probes, limits, or rollouts. |
+| `infrastructure-as-code` | Use when writing Terraform or other infrastructure code, or diagnosing drift. |
+| `ci-pipeline-security` | Use when writing or reviewing CI workflow files, or assessing pipeline supply chain risk. |
+| `incident-response` | Use when responding to a production incident, outage, or alert. |
 
 ## Performance and observability
 
@@ -112,8 +112,8 @@ Finding the bottleneck, and knowing whether the system is healthy.
 
 | Skill | Routes when |
 | --- | --- |
-| `performance-profiling` | Use when a program is slow or memory grows, when profiling CPU or allocations, when a flame graph is needed, or when requests are slow under load. |
-| `observability-and-slos` | Use when defining reliability targets, error budgets, SLIs and SLOs, or when setting up metrics, logging, tracing, or dashboards and alerts. |
+| `performance-profiling` | Use when a program is slow or memory grows, or when profiling CPU or allocations. |
+| `observability-and-slos` | Use when defining SLOs, error budgets, or setting up metrics, logging, and tracing. |
 
 ## Security
 
@@ -121,9 +121,9 @@ Finding exploitable defects in code, dependencies, and response headers.
 
 | Skill | Routes when |
 | --- | --- |
-| `security-code-review` | Use when reviewing code that handles untrusted input, authentication, authorisation, secrets, file or network access, or when a security review is requested. |
-| `dependency-supply-chain-review` | Use when adding or upgrading dependencies, auditing an existing dependency tree, or assessing the risk of a package, lockfile, or build pipeline. |
-| `http-security-headers` | Use when setting security response headers, a Content-Security-Policy or CORS policy, or when reviewing an application for header hardening. |
+| `security-code-review` | Use when reviewing code that handles untrusted input, auth, secrets, or file access. |
+| `dependency-supply-chain-review` | Use when adding or upgrading dependencies, or auditing a dependency tree or lockfile. |
+| `http-security-headers` | Use when setting or reviewing security headers, CSP, or CORS policy. |
 
 ## LLM and agent engineering
 
@@ -131,9 +131,9 @@ Building on language models, and writing and dispatching agent skills.
 
 | Skill | Routes when |
 | --- | --- |
-| `llm-application-development` | Use when building applications on language models, including retrieval pipelines, prompt and context design, evaluation harnesses, or agent and tool-calling patterns. |
-| `writing-agent-skills` | Use when authoring, reviewing, or debugging an agent skill, and when a skill is not triggering when it should or triggers when it should not. |
-| `dispatching-parallel-agents` | Use when independent work items could run concurrently, or when a large task is being split across subagents without coordination. |
+| `llm-application-development` | Use when building on language models: retrieval, prompts, evaluation, or tool calling. |
+| `writing-agent-skills` | Use when authoring or debugging an agent skill, or when triggers are wrong. |
+| `dispatching-parallel-agents` | Use when independent work items could run concurrently, or splitting a task across subagents. |
 
 ## Cross-cutting correctness
 
@@ -141,8 +141,8 @@ The two domains where defects hide best: logs and timestamps.
 
 | Skill | Routes when |
 | --- | --- |
-| `structured-logging-and-error-handling` | Use when adding logging, structuring log output, handling or propagating errors, setting error boundaries, or redacting sensitive data from logs. |
-| `date-time-handling` | Use when working with dates, times, time zones, timestamps, scheduling, or calendar arithmetic, and when diagnosing off-by-one-day or ambiguous timestamp bugs. |
+| `structured-logging-and-error-handling` | Use when adding logging, propagating errors, or redacting sensitive data. |
+| `date-time-handling` | Use when working with dates, time zones, timestamps, or calendar arithmetic. |
 
 ---
 

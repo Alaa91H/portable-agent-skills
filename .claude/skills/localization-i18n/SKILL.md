@@ -1,6 +1,6 @@
 ---
 name: localization-i18n
-description: Use when adding translations, supporting multiple languages or locales, handling pluralisation, or formatting dates, numbers, and currency for international users.
+description: Use when adding translations, handling plurals, or formatting dates and numbers.
 ---
 
 # Localisation

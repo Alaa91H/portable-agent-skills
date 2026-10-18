@@ -1,6 +1,6 @@
 ---
 name: docker-containerization
-description: Use when writing or reviewing a Dockerfile, composing services, or debugging image size, build cache, container signals, or container runtime permissions.
+description: Use when writing or reviewing a Dockerfile, or debugging image size, cache, or signals.
 ---
 
 # Docker containerization

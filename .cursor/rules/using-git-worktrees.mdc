@@ -1,5 +1,5 @@
 ---
-description: "Use when starting work that should not disturb the current checkout, or when several branches need to be worked on at once."
+description: "Use when work should not disturb the current checkout, or branches run at once."
 alwaysApply: false
 ---
 

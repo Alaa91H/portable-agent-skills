@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when building applications on language models, including retrieval pipelines, prompt and context design, evaluation harnesses, or agent and tool-calling patterns."
+description: "Use when building on language models: retrieval, prompts, evaluation, or tool calling."
 ---
 
 

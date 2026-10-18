@@ -1,6 +1,6 @@
 ---
 name: api-contract-versioning
-description: Use when changing an existing API in a breaking way, deciding on a versioning scheme, or handling backward compatibility for clients you do not control.
+description: Use when changing an API in a breaking way, or deciding on a versioning scheme.
 ---
 
 # API contract versioning

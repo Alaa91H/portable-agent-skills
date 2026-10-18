@@ -1,6 +1,6 @@
 ---
 name: caching-and-stampedes
-description: Use when adding or tuning a cache, when requests overwhelm a database on a hot key, or when diagnosing cache misses, stale reads, and thundering herd problems.
+description: Use when adding or tuning a cache, or when a hot key overwhelms the database.
 ---
 
 # Caching and stampedes

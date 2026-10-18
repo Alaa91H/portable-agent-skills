@@ -1,6 +1,6 @@
 ---
 name: infrastructure-as-code
-description: Use when writing Terraform or other infrastructure code, managing cloud resources declaratively, or diagnosing drift between code and a live environment.
+description: Use when writing Terraform or other infrastructure code, or diagnosing drift.
 ---
 
 # Infrastructure as code

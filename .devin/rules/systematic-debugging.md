@@ -1,5 +1,5 @@
 ---
-description: "Use when a test fails, a build breaks, or behaviour is unexpected, and the cause is not yet known, before any fix is proposed."
+description: "Use when a test or build fails and the cause is not yet known."
 ---
 
 

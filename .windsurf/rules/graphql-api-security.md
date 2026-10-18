@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when exposing or reviewing a GraphQL API, or when a GraphQL endpoint is slow, is being abused, or leaks data it should not."
+description: "Use when exposing or reviewing a GraphQL API, or when it is slow or being abused."
 ---
 
 

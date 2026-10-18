@@ -1,6 +1,6 @@
 ---
 name: webhook-integration
-description: Use when sending or receiving webhooks, verifying webhook signatures, integrating third-party payment or notification APIs, or handling delivery retries.
+description: Use when sending or receiving webhooks, or verifying webhook signatures.
 ---
 
 # Webhook and third-party API integration

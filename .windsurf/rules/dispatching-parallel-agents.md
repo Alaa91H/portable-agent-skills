@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when independent work items could run concurrently, or when a large task is being split across subagents without coordination."
+description: "Use when independent work items could run concurrently, or splitting a task across subagents."
 ---
 
 

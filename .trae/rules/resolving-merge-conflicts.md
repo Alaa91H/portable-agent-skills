@@ -1,5 +1,5 @@
 ---
-description: "Use when git reports a conflict, when a rebase stops, or when a merge produces CONFLICT markers in a file."
+description: "Use when git reports a conflict, a rebase stops, or a merge leaves CONFLICT markers."
 ---
 
 

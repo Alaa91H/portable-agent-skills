@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when setting up design tokens, managing a growing stylesheet, choosing between CSS-in-JS and utility classes, or when a codebase's styles have become hard to change safely."
+description: "Use when setting up design tokens, growing a stylesheet, or choosing between styling approaches."
 ---
 
 

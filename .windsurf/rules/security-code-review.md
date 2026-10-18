@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when reviewing code that handles untrusted input, authentication, authorisation, secrets, file or network access, or when a security review is requested."
+description: "Use when reviewing code that handles untrusted input, auth, secrets, or file access."
 ---
 
 

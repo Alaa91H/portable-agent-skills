@@ -1,6 +1,6 @@
 ---
 name: test-driven-development
-description: Use when adding or changing any feature or bugfix that needs tests, or when a test-first workflow is requested.
+description: Use when adding or changing a feature or bugfix that needs tests.
 ---
 
 # Test driven development

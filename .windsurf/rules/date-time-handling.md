@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when working with dates, times, time zones, timestamps, scheduling, or calendar arithmetic, and when diagnosing off-by-one-day or ambiguous timestamp bugs."
+description: "Use when working with dates, time zones, timestamps, or calendar arithmetic."
 ---
 
 

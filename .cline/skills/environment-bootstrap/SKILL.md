@@ -1,6 +1,6 @@
 ---
 name: environment-bootstrap
-description: Use when setting up a development environment, installing dependencies, getting a project to build or run locally, or diagnosing a broken local setup.
+description: Use when setting up a dev environment, installing dependencies, or getting a project running.
 ---
 
 # Environment bootstrap

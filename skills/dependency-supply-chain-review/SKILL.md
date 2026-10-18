@@ -1,6 +1,6 @@
 ---
 name: dependency-supply-chain-review
-description: Use when adding or upgrading dependencies, auditing an existing dependency tree, or assessing the risk of a package, lockfile, or build pipeline.
+description: Use when adding or upgrading dependencies, or auditing a dependency tree or lockfile.
 ---
 
 # Dependency and supply chain review

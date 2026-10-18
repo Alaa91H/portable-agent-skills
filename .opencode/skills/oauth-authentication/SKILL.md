@@ -1,6 +1,6 @@
 ---
 name: oauth-authentication
-description: Use when implementing login, token handling, sessions, or OAuth flows, and when choosing between JWT and server-side sessions or storing tokens safely.
+description: Use when implementing login, token handling, sessions, or OAuth flows.
 ---
 
 # Authentication and token handling

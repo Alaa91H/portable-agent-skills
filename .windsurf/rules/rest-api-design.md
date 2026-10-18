@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when designing or reviewing an HTTP API, including status code choices, error response bodies, pagination, or idempotency for retried writes."
+description: "Use when designing or reviewing an HTTP API, its errors, pagination, or idempotency."
 ---
 
 

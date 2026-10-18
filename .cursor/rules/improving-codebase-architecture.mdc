@@ -1,5 +1,5 @@
 ---
-description: "Use when asked to review, assess, or improve the structure of a codebase, find coupling or duplication, or decide what to refactor first."
+description: "Use when reviewing codebase structure, finding coupling or duplication, or prioritising refactors."
 alwaysApply: false
 ---
 

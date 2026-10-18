@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when restructuring existing code, reducing duplication, or modernising an interface, where existing tests must keep passing."
+description: "Use when restructuring code where existing tests must keep passing."
 ---
 
 

@@ -208,13 +208,14 @@ done
 # Root-level files that agents read without a rules directory.
 # These point at the collection and stay short, since they are always loaded.
 build_root_pointer() {
+  # The count is derived, never written by hand: a stale number in an index
+  # that agents read on every session is worse than no number.
+  total=0
+  for d in "$SRC"/*/; do [ -f "$d/SKILL.md" ] && total=$((total + 1)); done
+
+  printf '# Agent Skills\n\n'
+  printf 'This repository contains %d validated Agent Skills.\n\n' "$total"
   cat <<'EOF'
-# Agent Skills
-
-This repository contains 23 validated Agent Skills covering planning, testing,
-debugging, code review, git workflow, architecture, documentation, frontend,
-accessibility, security, supply chain, SQL, and agent authoring.
-
 If your agent supports the Agent Skills specification (`SKILL.md`), they are
 already discoverable: they live under `.opencode/skills/` and are mirrored into
 this repository's `skills/`, `.claude/skills/`, `.agents/skills/`, and

@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when a program is slow or memory grows, when profiling CPU or allocations, when a flame graph is needed, or when requests are slow under load."
+description: "Use when a program is slow or memory grows, or when profiling CPU or allocations."
 ---
 
 

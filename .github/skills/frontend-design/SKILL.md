@@ -1,6 +1,6 @@
 ---
 name: frontend-design
-description: Use when building or restyling a user interface, component, or page, including when the request mentions a design or visual change.
+description: Use when building or restyling a user interface, component, or page.
 ---
 
 # Frontend design

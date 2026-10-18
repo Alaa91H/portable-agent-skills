@@ -382,31 +382,44 @@ if [ "$SKILLS_DIR_OVERRIDDEN" -eq 0 ] && [ -d "$DIST_DIR" ]; then
 fi
 
 # ------------------------------------------------------- catalog budget
-# Zed caps the total size of all skill names and descriptions at 50 KB and
-# silently drops whatever does not fit, so a collection can lose skills with no
-# error. Check against the strictest known budget rather than discovering it.
-CATALOG_BUDGET=51200
+# Two agents cap the catalog and drop whatever does not fit, silently.
+#
+#   Zed   50 KB total for all names and descriptions
+#   Codex 8,000 characters by default, overridable via skills.max_context_tokens
+#         up to 10,000, and shortening the longest descriptions first
+#
+# Codex is the binding constraint by a wide margin, so it is the one that has to
+# hold. A collection that exceeds it loses skills on Codex with no error.
+ZED_BUDGET=51200
+CODEX_BUDGET=8000
 if [ "$SKILLS_DIR_OVERRIDDEN" -eq 0 ]; then
   budget=0
   budget_n=0
+  over=""
   for d in "$SKILLS_DIR"/*/; do
     d="${d%/}"
     f="$d/SKILL.md"
     [ -f "$f" ] || continue
     bn="$(fm_get "$f" name)"
     bd="$(fm_get "$f" description)"
-    budget=$(( budget + ${#bn} + ${#bd} ))
+    cost=$(( ${#bn} + ${#bd} ))
+    budget=$(( budget + cost ))
     budget_n=$(( budget_n + 1 ))
+    [ "$cost" -gt 160 ] && over="$over $id(${cost})"
   done
 
-  pct=$(( budget * 100 / CATALOG_BUDGET ))
-  if [ "$budget" -gt "$CATALOG_BUDGET" ]; then
-    fail "catalog budget exceeded: ${budget}B of ${CATALOG_BUDGET}B across $budget_n skills"
-    hint "agents that cap the catalog drop the overflow silently; shorten descriptions or split the collection"
-  elif [ "$pct" -ge 90 ]; then
-    warn "catalog budget at ${pct}% (${budget}B of ${CATALOG_BUDGET}B); Zed drops skills that do not fit"
+  codex_pct=$(( budget * 100 / CODEX_BUDGET ))
+  zed_pct=$(( budget * 100 / ZED_BUDGET ))
+
+  if [ "$budget" -gt "$CODEX_BUDGET" ]; then
+    fail "Codex catalog budget exceeded: ${budget} of ${CODEX_BUDGET} chars across $budget_n skills"
+    hint "Codex drops the overflow silently, shortening the longest descriptions first"
+    [ -n "$over" ] && hint "over 160 chars:$over"
+  elif [ "$codex_pct" -ge 85 ]; then
+    warn "Codex catalog budget at ${codex_pct}% (${budget}/${CODEX_BUDGET} chars); Zed at ${zed_pct}%"
+    hint "keep a description near 100-130 chars so the collection can still grow"
   else
-    pass "catalog budget ${pct}% used (${budget}B of ${CATALOG_BUDGET}B, $budget_n skills)"
+    pass "catalog budget: Codex ${codex_pct}% (${budget}/${CODEX_BUDGET} chars), Zed ${zed_pct}%, $budget_n skills"
   fi
 fi
 

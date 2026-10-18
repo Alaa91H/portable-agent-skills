@@ -1,6 +1,6 @@
 ---
 name: ci-pipeline-security
-description: Use when writing or reviewing CI workflow files, GitHub Actions configurations, build pipelines, or when evaluating a pipeline for supply chain risk.
+description: Use when writing or reviewing CI workflow files, or assessing pipeline supply chain risk.
 ---
 
 # CI pipeline security

@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when a requirement is ambiguous, when defining done, or before writing tests, so that scope and edge cases are pinned down first."
+description: "Use when a requirement is ambiguous, or before tests, to pin down scope."
 ---
 
 

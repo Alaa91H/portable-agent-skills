@@ -1,6 +1,6 @@
 ---
 name: finishing-a-development-branch
-description: Use when a branch is ready to merge, open a pull request for, or hand off, and the remaining steps need to be done in order.
+description: Use when a branch is ready to merge, hand off, or open a pull request.
 ---
 
 # Finishing a development branch

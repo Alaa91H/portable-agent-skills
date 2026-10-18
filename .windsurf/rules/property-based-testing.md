@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when a function handles structured input, invalid input, numeric edge cases, or serialization, or when example-based tests keep missing real bugs."
+description: "Use when testing structured or invalid input, or when examples keep missing bugs."
 ---
 
 

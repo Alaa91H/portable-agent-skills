@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when writing or updating README, architecture notes, API reference, onboarding guides, or any doc aimed at another developer."
+description: "Use when writing or updating README, architecture notes, or API reference."
 ---
 
 

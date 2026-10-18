@@ -1,6 +1,6 @@
 ---
 name: incident-response
-description: Use when responding to a production incident, outage, or alert, including triage, mitigation, communication, handoff, and writing a postmortem.
+description: Use when responding to a production incident, outage, or alert.
 ---
 
 # Incident response

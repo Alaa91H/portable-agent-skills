@@ -1,6 +1,6 @@
 ---
 name: kubernetes-deployment
-description: Use when writing or reviewing Kubernetes manifests, probes, resource limits, rollout configuration, or when diagnosing pods that crashloop or never become ready.
+description: Use when writing or reviewing Kubernetes manifests, probes, limits, or rollouts.
 ---
 
 # Kubernetes deployment

@@ -1,5 +1,5 @@
 ---
-description: "Use when a database query is slow, when an index is missing or unused, or when writing queries against a large table."
+description: "Use when a query is slow, an index is missing, or querying a large table."
 ---
 
 

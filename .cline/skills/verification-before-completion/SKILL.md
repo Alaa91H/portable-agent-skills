@@ -1,6 +1,6 @@
 ---
 name: verification-before-completion
-description: Use when about to report that work is complete, fixed, passing, or done, before committing, pushing, or opening a pull request.
+description: Use when about to report work complete or fixed, or before committing or opening a pull request.
 ---
 
 # Verification before completion

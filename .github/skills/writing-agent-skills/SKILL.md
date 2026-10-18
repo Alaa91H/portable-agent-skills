@@ -1,6 +1,6 @@
 ---
 name: writing-agent-skills
-description: Use when authoring, reviewing, or debugging an agent skill, and when a skill is not triggering when it should or triggers when it should not.
+description: Use when authoring or debugging an agent skill, or when triggers are wrong.
 ---
 
 # Writing agent skills

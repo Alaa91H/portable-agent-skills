@@ -1,6 +1,6 @@
 ---
 name: onboarding-unfamiliar-codebase
-description: Use when opening an unfamiliar repository for the first time, or when asked to orient, explore, or understand what a codebase does and where things live.
+description: Use when opening an unfamiliar repository, or when asked to orient in a codebase.
 ---
 
 # Onboarding an unfamiliar codebase

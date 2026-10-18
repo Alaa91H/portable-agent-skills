@@ -1,6 +1,6 @@
 ---
 name: domain-modeling
-description: Use when identifying domain concepts, naming things in a codebase, modelling business rules, or when the code has unclear boundaries and unclear vocabulary.
+description: Use when identifying domain concepts, modelling business rules, or unclear code vocabulary.
 ---
 
 # Domain modelling

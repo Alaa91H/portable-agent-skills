@@ -1,5 +1,5 @@
 ---
-description: "Use when a task needs more than a trivial edit and no agreed approach exists yet, or when asked to plan, spec, or break down work before implementing."
+description: "Use when a task needs a plan, spec, or breakdown before any code is written."
 alwaysApply: false
 ---
 

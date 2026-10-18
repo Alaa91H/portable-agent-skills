@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when adding logging, structuring log output, handling or propagating errors, setting error boundaries, or redacting sensitive data from logs."
+description: "Use when adding logging, propagating errors, or redacting sensitive data."
 ---
 
 

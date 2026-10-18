@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when adding or reviewing message queue consumers, producers, webhooks, or background workers, including retries, idempotency, ordering, and dead letter queues."
+description: "Use when writing or reviewing queue consumers, workers, retries, or dead letter queues."
 ---
 
 
