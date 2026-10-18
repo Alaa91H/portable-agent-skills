@@ -1,0 +1,35 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    name: Normalise, validate, sync, test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check normalisation (no BOM, no CRLF)
+        run: scripts/normalize.sh --check
+
+      - name: Validate every skill against the Agents Skills spec
+        run: scripts/validate-skills.sh --strict
+
+      - name: Check agent discovery roots are in sync
+        run: scripts/sync-agents.sh --check
+
+      - name: Regression-test the validator itself
+        run: tests/run-tests.sh
+
+      - name: Verify the HTTP catalog builds and lists every skill
+        run: |
+          scripts/build-catalog.sh
+          count=$(find dist -name SKILL.md | wc -l)
+          expected=$(find .opencode/skills -name SKILL.md | wc -l)
+          echo "catalog: $count skill(s), source: $expected"
+          test "$count" -eq "$expected"
+          grep -q '"skills"' dist/index.json

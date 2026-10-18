@@ -237,6 +237,35 @@ description: Processes spreadsheets and writes summary reports.
 # Vague description
 EOF
 
+# -------------------------------------------------------- catalog guard
+# The catalog describes the repository's own skills, so the validator must skip
+# it when pointed at a temporary tree. Without this, validating a temporary tree
+# in a repository that has a dist/ directory compares against the real catalog
+# and fails on every skill. Regression test for a bug found the hard way.
+guard="$TMP/catalog-guard"
+mkdir -p "$guard/.opencode/skills/guard-skill" "$guard/dist"
+cat > "$guard/.opencode/skills/guard-skill/SKILL.md" <<'EOF'
+---
+name: guard-skill
+description: Use when verifying that the catalog check is skipped for a temporary skills tree.
+---
+
+# Guard
+EOF
+# A catalog that deliberately does not list guard-skill.
+printf '{"skills":[{"name":"unrelated","version":"1","files":["SKILL.md"]}]}\n' > "$guard/dist/index.json"
+
+guard_out="$(cd "$ROOT" && SKILLS_DIR="$guard/.opencode/skills" DIST_DIR="$guard/dist" bash "$VALIDATOR" 2>&1)"
+guard_rc=$?
+if [ "$guard_rc" -eq 0 ]; then
+  printf '  %sok%s    %s\n' "$GRN" "$RST" "catalog-skip-when-overridden"
+  passes=$((passes + 1))
+else
+  printf '  %sFAIL%s  %-24s catalog check ran against an overridden skills tree\n' "$RED" "$RST" "catalog-skip-when-overridden"
+  printf '%s\n' "$guard_out" | sed 's/^/          /'
+  failures=$((failures + 1))
+fi
+
 # ------------------------------------------------------------------- summary
 printf '\n'
 if [ "$failures" -gt 0 ]; then

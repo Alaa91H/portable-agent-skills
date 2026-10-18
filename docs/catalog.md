@@ -1,6 +1,6 @@
 # Catalog
 
-25 skills, grouped by cluster. The routing sentence is the skill's exact
+23 skills, grouped by cluster. The routing sentence is the skill's exact
 `description`; changing it changes when the agent reaches for the skill, so
 treat it as reviewed surface rather than incidental wording.
 
@@ -16,7 +16,7 @@ widest measured effect on output quality.
 | Skill | Routes when |
 | --- | --- |
 | `planning-before-implementation` | Use when a task needs more than a trivial edit and no agreed approach exists yet, or when asked to plan, spec, or break down work before implementing. |
-| `writing-acceptance-criteria` | Use when a requirement is ambiguous, when defining "done", or before writing tests, so that scope and edge cases are pinned down first. |
+| `writing-acceptance-criteria` | Use when a requirement is ambiguous, when defining done, or before writing tests, so that scope and edge cases are pinned down first. |
 | `test-driven-development` | Use when adding or changing any feature or bugfix that needs tests, or when a test-first workflow is requested. |
 | `systematic-debugging` | Use when a test fails, a build breaks, or behaviour is unexpected, and the cause is not yet known, before any fix is proposed. |
 | `verification-before-completion` | Use when about to report that work is complete, fixed, passing, or done, before committing, pushing, or opening a pull request. |
@@ -37,7 +37,7 @@ widest measured effect on output quality.
 | --- | --- |
 | `using-git-worktrees` | Use when starting work that should not disturb the current checkout, or when several branches need to be worked on at once. |
 | `finishing-a-development-branch` | Use when a branch is ready to merge, open a pull request for, or hand off, and the remaining steps need to be done in order. |
-| `resolving-merge-conflicts` | Use when git reports a conflict, when a rebase stops, or when a merge produces `CONFLICT` markers in a file. |
+| `resolving-merge-conflicts` | Use when git reports a conflict, when a rebase stops, or when a merge produces CONFLICT markers in a file. |
 | `improving-codebase-architecture` | Use when asked to review, assess, or improve the structure of a codebase, find coupling or duplication, or decide what to refactor first. |
 | `writing-technical-docs` | Use when writing or updating README, architecture notes, API reference, onboarding guides, or any doc aimed at another developer. |
 

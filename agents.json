@@ -1,0 +1,86 @@
+{
+  "$comment": "Machine-readable support matrix. install.sh and the README both read this list, so adding an agent means editing one place.",
+  "format": {
+    "specification": "https://agentskills.io/specification",
+    "spec_version": "open",
+    "entry_file": "SKILL.md",
+    "canonical_source": ".opencode/skills",
+    "discovery_roots": [
+      ".opencode/skills",
+      "skills",
+      ".claude/skills",
+      ".agents/skills",
+      ".github/skills"
+    ]
+  },
+  "install_methods": [
+    {
+      "id": "script",
+      "name": "install.sh",
+      "description": "Copy into any agent's project or user-level skills directory.",
+      "usage": "./install.sh <agent> [--global]"
+    },
+    {
+      "id": "http-catalog",
+      "name": "HTTP catalog",
+      "description": "Serve dist/ from any static host; agents that support remote catalogs fetch index.json.",
+      "entry": "dist/index.json",
+      "build": "scripts/build-catalog.sh"
+    },
+    {
+      "id": "plugin",
+      "name": "Claude Code plugin",
+      "description": "Add the repository as a plugin marketplace.",
+      "usage": "/plugin marketplace add <owner>/<repo>"
+    },
+    {
+      "id": "reference-validator",
+      "name": "skills-ref",
+      "description": "Validate against the open specification with the reference CLI.",
+      "usage": "skills-ref validate <skill-dir>"
+    }
+  ],
+  "agents": [
+    {
+      "id": "opencode",
+      "label": "OpenCode",
+      "protocol": "filesystem",
+      "project_paths": [".opencode/skills", "skills"],
+      "global_path": "~/.config/opencode/skills",
+      "config_file": "opencode.jsonc",
+      "notes": "Discovers .claude/skills and .agents/skills automatically as compatibility roots."
+    },
+    {
+      "id": "claude",
+      "label": "Claude Code",
+      "protocol": "filesystem",
+      "project_paths": [".claude/skills"],
+      "global_path": "~/.claude/skills",
+      "plugin": true,
+      "notes": "Also installable as a plugin from .claude-plugin/marketplace.json."
+    },
+    {
+      "id": "agents",
+      "label": "Agent Skills spec clients (VS Code Copilot, Codex, and others)",
+      "protocol": "filesystem",
+      "project_paths": [".agents/skills"],
+      "global_path": "~/.agents/skills",
+      "notes": "The convention defined by agentskills.io."
+    },
+    {
+      "id": "github",
+      "label": "GitHub Copilot",
+      "protocol": "filesystem",
+      "project_paths": [".github/skills"],
+      "global_path": "~/.github/skills",
+      "notes": "Also served as agent instructions and custom instructions in the same ecosystem."
+    },
+    {
+      "id": "remote",
+      "label": "Any agent supporting an HTTP catalog",
+      "protocol": "http",
+      "entry": "dist/index.json",
+      "notes": "Build with scripts/build-catalog.sh and serve dist/ from any static host."
+    }
+  ]
+}

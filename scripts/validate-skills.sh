@@ -31,7 +31,12 @@ done
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT" || exit 2
 
-SKILLS_DIR="${SKILLS_DIR:-.opencode/skills}"
+SKILLS_DIR_OVERRIDDEN=0
+if [ -n "${SKILLS_DIR:-}" ]; then
+  SKILLS_DIR_OVERRIDDEN=1
+else
+  SKILLS_DIR=".opencode/skills"
+fi
 DIST_DIR="${DIST_DIR:-dist}"
 
 if [ -t 1 ]; then
@@ -254,15 +259,21 @@ validate_skill() {
   fi
 
   # ---- referenced support files ---------------------------------------
-  if printf '%s' "$body" | grep -q '\\'; then
-    warn "$id": body contains backslashes; reference files with forward slashes only
+  # Only a path separator matters here. Regex escapes such as \s are ordinary
+  # content, so match the separator in a reference rather than any backslash.
+  if printf '%s' "$body" | grep -qE '(references|scripts|assets)\\'; then
+    warn "$id: a file reference uses backslashes; use forward slashes so it also works on POSIX hosts"
   fi
 
-  refs="$(grep -oE '(references|scripts|assets)/[A-Za-z0-9._/-]+' "$file" 2>/dev/null | sed 's/[.,;:)]*$//' | LC_ALL=C sort -u)"
+  refs="$(grep -oE '(references|scripts|assets)/[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*' "$file" 2>/dev/null | sed 's/[.,;:)]*$//' | LC_ALL=C sort -u)"
   if [ -n "$refs" ]; then
     while IFS= read -r ref; do
       [ -n "$ref" ] || continue
-      if [ ! -e "$dir_of_file/$ref" ]; then
+      # A reference must resolve relative to the skill, or relative to the
+      # repository root for the collection's own tooling.
+      if [ -e "$dir_of_file/$ref" ] || [ -e "$ROOT/$ref" ]; then
+        :
+      else
         fail "$id: body references '$ref' but that file does not exist"
         continue
       fi
@@ -304,7 +315,10 @@ done
 [ "$found" -eq 1 ] || fail "no skills found in $SKILLS_DIR"
 
 # ------------------------------------------------------------------ catalog
-if [ -d "$DIST_DIR" ]; then
+# The catalog describes the repository's canonical skills, so it is only
+# meaningful when validating the repository itself. Pointing SKILLS_DIR at a
+# temporary tree, as the regression suite does, must not compare it to dist/.
+if [ "$SKILLS_DIR_OVERRIDDEN" -eq 0 ] && [ -d "$DIST_DIR" ]; then
   section "HTTP catalog ($DIST_DIR)"
   catalog="$DIST_DIR/index.json"
 
@@ -317,38 +331,87 @@ if [ -d "$DIST_DIR" ]; then
         || fail "catalog: '$id' is missing from index.json (rebuild with scripts/build-catalog.sh)"
     done
 
-    if command -v python3 >/dev/null 2>&1; then
-      python3 - "$catalog" "$DIST_DIR" <<'PY' || true
-import json, os, sys
-catalog, dist = sys.argv[1], sys.argv[2]
-with open(catalog, encoding="utf-8") as fh:
-    data = json.load(fh)
-R, F = "\033[31m", "\033[0m"
-bad = 0
-for entry in data.get("skills", []):
-    name = entry.get("name", "<unnamed>")
-    version = str(entry.get("version", ""))
-    files = entry.get("files", [])
-    if not version.isdigit() or int(version) < 1:
-        print(f"  {R}FAIL{R}  catalog: '{name}' has non-integer version {version!r}")
-        bad += 1
-    if not files:
-        print(f"  {R}FAIL{R}  catalog: '{name}' lists no files")
-        bad += 1
-    for rel in files:
-        if os.path.isabs(rel) or ".." in rel.split("/"):
-            print(f"  {R}FAIL{R}  catalog: '{name}' has unsafe path {rel!r}")
-            bad += 1
-        elif not os.path.isfile(os.path.join(dist, name, rel)):
-            print(f"  {R}FAIL{R}  catalog: '{name}' lists missing file {rel!r}")
-            bad += 1
-print(f"  \033[32mok\033[0m    catalog entries structurally valid" if not bad else "")
-sys.exit(1 if bad else 0)
-PY
+    # Deep structural check in awk, so the validator stays dependency-free and
+    # behaves identically on a bare CI image and on a Windows dev box. This
+    # parses the exact layout scripts/build-catalog.sh emits.
+    if awk -v dist="$DIST_DIR" '
+      /"name"[ \t]*:/ {
+        line = $0
+        sub(/.*"name"[ \t]*:[ \t]*"/, "", line)
+        sub(/".*/, "", line)
+        name = line; next
+      }
+      /"version"[ \t]*:/ {
+        line = $0
+        sub(/.*"version"[ \t]*:[ \t]*"?/, "", line)
+        gsub(/[" \t,]/, "", line)
+        if (line !~ /^[0-9]+$/ || line + 0 < 1) {
+          printf("  FAIL  catalog: \x27%s\x27 has a non-integer version\n", name); bad = 1
+        }
+        next
+      }
+      /"files"[ \t]*:/ {
+        line = $0
+        sub(/.*"files"[ \t]*:[ \t]*\[/, "", line)
+        sub(/\].*/, "", line)
+        if (line ~ /^[ \t]*$/) {
+          printf("  FAIL  catalog: \x27%s\x27 lists no files\n", name); bad = 1; next
+        }
+        n = split(line, parts, ",")
+        for (i = 1; i <= n; i++) {
+          f = parts[i]
+          gsub(/[" \t]/, "", f)
+          if (f == "") continue
+          if (f ~ /^\// || f ~ /\.\./) {
+            printf("  FAIL  catalog: \x27%s\x27 has unsafe path \x27%s\x27\n", name, f); bad = 1; continue
+          }
+          cmd = "test -f \"" dist "/" name "/" f "\""
+          if (system(cmd) != 0) {
+            printf("  FAIL  catalog: \x27%s\x27 lists missing file \x27%s\x27\n", name, f); bad = 1
+          }
+        }
+        next
+      }
+      END { exit(bad ? 1 : 0) }
+    ' "$catalog"; then
+      pass "catalog entries structurally valid"
     else
-      pass "skipping deep catalog check (python3 unavailable)"
+      ERRORS=$((ERRORS + 1))
     fi
   fi
+fi
+
+# -------------------------------------------------------- documentation
+# A catalog that drifts from the skills it documents is documentation rot, so
+# it is checked mechanically rather than left to discipline. This repository
+# ships writing-technical-docs, which argues for exactly this rule.
+DOC="docs/catalog.md"
+if [ "$SKILLS_DIR_OVERRIDDEN" -eq 0 ] && [ -f "$DOC" ]; then
+  section "Documentation ($DOC)"
+  doc_missing=0
+  for id in "${ALL_IDS[@]}"; do
+    if ! grep -qF "\`$id\`" "$DOC"; then
+      fail "$DOC does not list '$id'"
+      doc_missing=1
+    fi
+  done
+  [ "$doc_missing" -eq 0 ] && pass "catalog.md lists every skill"
+
+  # The recorded routing sentence must match the shipped description.
+  desc_drift=0
+  for d in "$SKILLS_DIR"/*/; do
+    d="${d%/}"
+    id="${d##*/}"
+    f="$d/SKILL.md"
+    [ -f "$f" ] || continue
+    desc="$(fm_get "$f" description)"
+    [ -n "$desc" ] || continue
+    if ! grep -qF "$desc" "$DOC"; then
+      warn "$id: description does not match the routing sentence recorded in $DOC"
+      desc_drift=1
+    fi
+  done
+  [ "$desc_drift" -eq 0 ] && pass "catalog.md routing sentences match every description"
 fi
 
 # ------------------------------------------------------------------ summary
