@@ -1,0 +1,168 @@
+---
+name: background-jobs-and-scheduling
+description: Use when adding cron or a job queue, or when jobs overlap, drift, or run twice.
+---
+
+# Background jobs and scheduling
+
+## A job that runs twice must be safe
+
+Retries, deploys during a run, clock skew, and multi-instance deployments all
+produce the same thing: the same job executing more than once, sometimes
+concurrently. Design for that before you design for anything else.
+
+**Make the effect idempotent**, the same rule as a queue consumer:
+
+```sql
+-- safe to run twice
+UPDATE invoices SET sent_at = now() WHERE id = $1 AND sent_at IS NULL
+```
+
+Make the effect naturally idempotent where you can: assigning a value rather
+than incrementing it. `SET status = 'sent'` repeats harmlessly;
+`SET attempts = attempts + 1` does not.
+
+Then add a uniqueness constraint so the database enforces it, because application
+logic alone is not enough across two workers:
+
+```sql
+UNIQUE (invoice_id, billing_period)
+```
+
+## Do not use cron for anything that must run
+
+Cron has no knowledge of your application. It fires on wall-clock time, it does
+not know whether the last run finished, and with several instances **every
+instance runs it**.
+
+The two failure modes:
+
+- **Overlapping runs.** A job that takes longer than its interval is now running
+  twice. Two instances of a job that both "claim work" both claim the same work.
+- **Missed runs.** A restart at 03:00 silently skips 03:00.
+
+Move scheduling into a store the application already has:
+
+```sql
+-- a claim is atomic, so only one worker gets the row
+UPDATE jobs SET status = 'running', locked_at = now()
+WHERE id = (
+  SELECT id FROM jobs
+  WHERE status = 'pending' AND run_at <= now()
+  ORDER BY run_at
+  FOR UPDATE SKIP LOCKED
+  LIMIT 1
+)
+RETURNING id;
+```
+
+`FOR UPDATE SKIP LOCKED` is the primitive that makes this correct: two workers
+skip rows already claimed instead of blocking on each other. Check your database
+supports it.
+
+## Locks expire, because workers die
+
+A worker that crashes while holding a claim leaves the job stuck forever. Every
+claim needs a lease:
+
+```sql
+-- reclaim abandoned work
+WHERE (status = 'pending' AND run_at <= now())
+   OR (status = 'running' AND locked_at < now() - interval '15 minutes')
+```
+
+Set the lease longer than the longest expected job and shorter than your
+tolerance for a stuck job. Reclaiming too eagerly runs the same job concurrently
+with the original.
+
+## Retry with a budget, and stop for the wrong reasons
+
+```python
+if attempt >= MAX_ATTEMPTS:
+    dead_letter(job)          # visible, counted, alerted on
+    return
+
+try:
+    run(job)
+except TransientError:        # timeout, 503, connection reset
+    schedule_retry(job, delay=base * 2 ** attempt + jitter)
+except PermanentError:        # validation failed, record not found
+    dead_letter(job)          # retrying cannot fix it
+```
+
+Two distinctions that matter:
+
+- **Only retry transient failures.** A validation error will not become valid.
+  Retrying it consumes the budget and hides the real problem.
+- **Exponential backoff with jitter.** Without jitter, every failed job from one
+  outage retries at the same instant and reproduces the outage.
+
+A dead letter queue nobody watches is silent data loss. See
+`message-queue-processing`.
+
+## Long jobs need progress and a heartbeat
+
+A job that reports nothing gets killed by every timeout in the system, and the
+operator cannot tell a slow job from a stuck one.
+
+```python
+job.heartbeat(at=datetime.now(UTC), progress=processed / total)
+```
+
+The heartbeat must be written **during** the work, not between steps. A job that
+processes ten thousand records without updating is indistinguishable from one
+that has hung.
+
+For work longer than the lease, renew the claim on the same schedule as the
+heartbeat.
+
+## Schedules are data, not code
+
+Store them. Then they can be changed, audited, tested, and moved between
+environments without a deploy.
+
+```json
+{ "name": "nightly-billing", "cron": "0 3 * * *", "timezone": "Europe/Berlin",
+  "overlap": "skip", "retries": 3, "lease": "15m" }
+```
+
+The timezone field is not decoration. An unqualified cron expression runs in the
+**server's** zone, and a server in UTC silently shifts every job for every region
+except UTC. See `date-time-handling`.
+
+For anything on a calendar day, compute the target in the target's timezone and
+convert once. Iterating a local wall-clock schedule in UTC bakes in last year's
+offset.
+
+## Distributed cron needs a lock
+
+If cron is genuinely the only option, take a lock so one instance runs the job:
+
+```sh
+flock -n /var/lock/nightly-billing.lock ./billing.sh || echo "already running"
+```
+
+Prefer the database claim. A lock file is per-host, so it does not help across
+machines.
+
+## Test the schedule
+
+Run the job function against production-shaped data in a test, and run it twice.
+Most scheduling bugs are found by triggering the job manually and seeing what
+happens on the second invocation.
+
+```sh
+# what will cron actually fire, including under DST?
+crontab -l
+```
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "Cron is simpler." | It has no knowledge of whether the last run finished, and every instance runs it. |
+| "The job is fast enough not to overlap." | A dependency slows down and it overlaps anyway. |
+| "Retry everything with backoff." | A validation failure will not become valid, and it hides the cause. |
+| "Backoff is enough." | Without jitter, every job from one outage retries at the same instant. |
+| "The dead letter queue is monitored." | Only if something alerts on its depth. Check. |
+| "It runs at 03:00 local." | Only if the timezone is set. Otherwise it is the server's. |

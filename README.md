@@ -1,6 +1,6 @@
 # Essential Agent Skills
 
-A curated, validated collection of **59 agent skills** covering the full arc of
+A curated, validated collection of **67 agent skills** covering the full arc of
 software work: deciding what to build, building it test-first, getting it
 reviewed, shipping it, running it, operating it, and writing skills of its own.
 
@@ -358,6 +358,13 @@ when it is overhead. Its most valuable section is the trap: a worktree has **no
 dependencies of its own**, so it needs its own install, and two worktrees sharing
 a build directory will corrupt each other's output.
 
+**`git-internals`** — The reflog is your undo: `reset --hard` looks absolute and
+is not, and the commit is still there. Automate bisect with `git bisect run
+<test>` or you are the loop and you stop after ten steps. Hooks do not travel
+unless you commit them and set `core.hooksPath`, and a submodule is a **pointer**,
+so a change inside it is invisible to the parent until you stage the submodule
+path — the usual cause of green locally and broken in CI.
+
 **`finishing-a-development-branch`** — An ordered procedure, because skipping
 ahead is how branches reach main with a failing test. Runs the install as well as
 the suite, and reads the diff as a reviewer rather than as its author. Tabulates
@@ -579,11 +586,51 @@ width is time, the wide plateau at the top is the work, colour means nothing, an
 sees on-CPU time, so a program that is waiting looks fine. Connection pool
 exhaustion fails as a **queue, not an error**.
 
+**`concurrency-and-async`** — An `await` only yields if the awaited thing is
+genuinely asynchronous, so a synchronous hash inside an async function blocks
+every other request for its duration. `Promise.all` abandons the rest on first
+failure and launches everything at once. **Never hold a lock across an `await`**,
+and acquire multiple locks in a consistent global order, because that is the only
+reliable deadlock prevention. Concurrency bugs need a loop or a race detector,
+because a test that passes once has proved nothing.
+
 **`observability-and-slos`** — Start from the error budget, not a metric, and
 agree the consequence in advance or the number is a dashboard rather than a
 control. **100% reliability is the wrong target**, because change is the top
 cause of outages. Cardinality is the silent cost: every unique label value is a
 separate time series.
+
+### Reliability and lifecycle
+
+**`release-engineering`** — Version numbers are a promise about **compatibility**,
+not magnitude, and the judgement is about the consumer rather than the diff: a
+changed default alters behaviour without anyone's code changing. The artifact is
+immutable, so deploy the tag and pin by digest; rebuilding an old version is a new
+build with a familiar name. The rollback decision has three cases, and the one
+that catches people is a schema change, where rolling the code back does not
+restore the data.
+
+**`backup-and-disaster-recovery`** — A backup that has not been restored is a
+hypothesis, and the restore is the deliverable rather than the job. **Replicas are
+not backups**: a `DROP TABLE` propagates to every replica in seconds. RPO and RTO
+must be defined first, because a nightly backup silently *is* a twenty-four-hour
+RPO. Test against the largest dataset rather than the average, and give
+immutable storage its own credentials so the attacker who reaches production
+cannot delete the copies.
+
+**`background-jobs-and-scheduling`** — A job that runs twice must be safe, because
+retries, deploys during a run, and multi-instance deployments all produce that.
+Cron has no knowledge of whether the last run finished, and every instance runs
+it; `FOR UPDATE SKIP LOCKED` is the primitive that makes a claim correct. Locks
+expire because workers die, so every claim needs a lease, and a heartbeat must be
+written **during** the work or the job is indistinguishable from a hung one.
+
+**`privacy-and-data-retention`** — Minimisation is the whole strategy, and it is
+decided at design time. Deletion is a **distributed** problem: the record lives in
+the database, in backups, in the warehouse, in logs, in search, and at third
+parties, and a delete on one system is not compliance. Hashing an email does not
+anonymise it, because the space is small and enumerable; use a keyed digest or a
+surrogate, and test a re-identification attempt before calling it anonymised.
 
 ### Security
 
@@ -592,6 +639,14 @@ review that scans for suspicious syntax misses the defect that does not look
 suspicious. Separates authentication from authorisation and treats IDOR as the
 common defect. Every finding must carry an exploit path, payload and concrete
 fix.
+
+**`prompt-injection-defense`** — The core control is **structural**, not
+instructive: untrusted content must never occupy the position where instructions
+live, so retrieved text stays in the user turn as data rather than being
+concatenated into the system prompt. The cheapest defence is removing the
+capability, and the shape to audit for is an agent that both **reads secrets** and
+can make outbound requests. What does not work: telling the model to ignore
+instructions in documents, because that instruction competes with a real one.
 
 **`dependency-supply-chain-review`** — The point where most damage is preventable.
 A typosquatting table, maintenance signals indicating transferred ownership, and
@@ -611,6 +666,14 @@ split the golden set so tuning and reporting use different data. **Retrieval is
 where most RAG systems fail**, with a table separating "the document was
 retrieved and ignored" from "it was never retrieved", because the fix is
 opposite. Cost and latency are design constraints.
+
+**`mcp-server-authoring`** — A tool description is a **prompt**, not
+documentation, and it is the only part of the definition the model sees, so the
+same workflow-summarisation trap applies as for skills. Two overlapping
+descriptions are chosen between at random. Errors are results the model reads, so
+return what to do differently rather than a stack trace. And the most important
+control is capability: a tool that reads a page should not also be able to send
+email, because an attacker needs the model to do something.
 
 **`writing-agent-skills`** — The skill that governs this collection. Three
 disclosure levels, the failure-first method, the description trap, and the

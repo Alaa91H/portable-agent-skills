@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when reviewing codebase structure, finding coupling or duplication, or prioritising refactors."
+description: "Use when reviewing codebase structure, finding duplication, or prioritising refactors."
 ---
 
 

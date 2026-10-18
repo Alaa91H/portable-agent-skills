@@ -38,11 +38,12 @@
     },
     {
       "title": "Version control",
-      "description": "Branches, worktrees, merges, and getting a branch finished without surprises.",
+      "description": "Branches, worktrees, merges, and the plumbing underneath when git surprises you.",
       "skills": [
         "using-git-worktrees",
         "finishing-a-development-branch",
-        "resolving-merge-conflicts"
+        "resolving-merge-conflicts",
+        "git-internals"
       ]
     },
     {
@@ -113,26 +114,39 @@
     },
     {
       "title": "Performance and observability",
-      "description": "Finding the bottleneck, and knowing whether the system is healthy.",
+      "description": "Finding the bottleneck, reasoning about concurrency, and knowing whether the system is healthy.",
       "skills": [
         "performance-profiling",
+        "concurrency-and-async",
         "observability-and-slos"
       ]
     },
     {
+      "title": "Reliability and lifecycle",
+      "description": "Shipping, recovering, scheduling, and handling the data you hold about people.",
+      "skills": [
+        "release-engineering",
+        "backup-and-disaster-recovery",
+        "background-jobs-and-scheduling",
+        "privacy-and-data-retention"
+      ]
+    },
+    {
       "title": "Security",
-      "description": "Finding exploitable defects in code, dependencies, and response headers.",
+      "description": "Finding exploitable defects in code, dependencies, response headers, and agent inputs.",
       "skills": [
         "security-code-review",
         "dependency-supply-chain-review",
-        "http-security-headers"
+        "http-security-headers",
+        "prompt-injection-defense"
       ]
     },
     {
       "title": "LLM and agent engineering",
-      "description": "Building on language models, and writing and dispatching agent skills.",
+      "description": "Building on language models, and writing, serving and dispatching agent skills.",
       "skills": [
         "llm-application-development",
+        "mcp-server-authoring",
         "writing-agent-skills",
         "dispatching-parallel-agents"
       ]

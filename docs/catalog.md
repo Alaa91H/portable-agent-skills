@@ -10,7 +10,7 @@ The routing sentence is the skill's exact `description`. Changing it changes whe
 the agent reaches for the skill, so treat it as reviewed surface rather than
 incidental wording.
 
-59 skills, grouped by cluster.
+67 skills, grouped by cluster.
 
 
 ## Craft and process
@@ -23,7 +23,7 @@ Deciding what to do, doing it test-first, and proving it works.
 | `writing-acceptance-criteria` | Use when a requirement is ambiguous, or before tests, to pin down scope. |
 | `test-driven-development` | Use when adding or changing a feature or bugfix that needs tests. |
 | `systematic-debugging` | Use when a test or build fails and the cause is not yet known. |
-| `verification-before-completion` | Use when about to report work complete or fixed, or before committing or opening a pull request. |
+| `verification-before-completion` | Use when about to report work complete or fixed, or before committing. |
 
 ## Testing and review
 
@@ -45,20 +45,21 @@ Orienting yourself, getting it running, and finding the model underneath the cod
 | Skill | Routes when |
 | --- | --- |
 | `onboarding-unfamiliar-codebase` | Use when opening an unfamiliar repository, or when asked to orient in a codebase. |
-| `environment-bootstrap` | Use when setting up a dev environment, installing dependencies, or getting a project running. |
-| `domain-modeling` | Use when identifying domain concepts, modelling business rules, or unclear code vocabulary. |
-| `improving-codebase-architecture` | Use when reviewing codebase structure, finding coupling or duplication, or prioritising refactors. |
+| `environment-bootstrap` | Use when setting up a dev environment, installing dependencies, or running a project. |
+| `domain-modeling` | Use when identifying domain concepts, business rules, or unclear code vocabulary. |
+| `improving-codebase-architecture` | Use when reviewing codebase structure, finding duplication, or prioritising refactors. |
 | `writing-technical-docs` | Use when writing or updating README, architecture notes, or API reference. |
 
 ## Version control
 
-Branches, worktrees, merges, and getting a branch finished without surprises.
+Branches, worktrees, merges, and the plumbing underneath when git surprises you.
 
 | Skill | Routes when |
 | --- | --- |
 | `using-git-worktrees` | Use when work should not disturb the current checkout, or branches run at once. |
 | `finishing-a-development-branch` | Use when a branch is ready to merge, hand off, or open a pull request. |
 | `resolving-merge-conflicts` | Use when git reports a conflict, a rebase stops, or a merge leaves CONFLICT markers. |
+| `git-internals` | Use when recovering lost work, bisecting a regression, or managing hooks and submodules. |
 
 ## Interfaces and accessibility
 
@@ -67,9 +68,9 @@ Building and reviewing interfaces, including localisation and WCAG conformance.
 | Skill | Routes when |
 | --- | --- |
 | `frontend-design` | Use when building or restyling a user interface, component, or page. |
-| `css-architecture` | Use when setting up design tokens, growing a stylesheet, or choosing between styling approaches. |
+| `css-architecture` | Use when setting up design tokens, growing a stylesheet, or choosing a styling approach. |
 | `web-design-guidelines` | Use when reviewing UI code against interface, accessibility, or UX guidelines. |
-| `accessibility-audit` | Use when auditing a page or component for WCAG, screen-reader support, or keyboard operability. |
+| `accessibility-audit` | Use when auditing a page or component for WCAG, screen readers, or keyboard operability. |
 | `localization-i18n` | Use when adding translations, handling plurals, or formatting dates and numbers. |
 
 ## APIs and integrations
@@ -92,7 +93,7 @@ Queries, schema changes, caching, and background processing.
 | Skill | Routes when |
 | --- | --- |
 | `sql-query-performance` | Use when a query is slow, an index is missing, or querying a large table. |
-| `database-migrations` | Use when writing or running schema migrations, backfills, or when a migration blocks queries. |
+| `database-migrations` | Use when running schema migrations or backfills, or when a migration blocks queries. |
 | `caching-and-stampedes` | Use when adding or tuning a cache, or when a hot key overwhelms the database. |
 | `message-queue-processing` | Use when writing or reviewing queue consumers, workers, retries, or dead letter queues. |
 
@@ -134,32 +135,46 @@ Cloud posture and cost, secrets and flags, search relevance, and mobile release.
 
 ## Performance and observability
 
-Finding the bottleneck, and knowing whether the system is healthy.
+Finding the bottleneck, reasoning about concurrency, and knowing whether the system is healthy.
 
 | Skill | Routes when |
 | --- | --- |
 | `performance-profiling` | Use when a program is slow or memory grows, or when profiling CPU or allocations. |
+| `concurrency-and-async` | Use when writing concurrent or async code, or diagnosing races, deadlocks, or blocking. |
 | `observability-and-slos` | Use when defining SLOs, error budgets, or setting up metrics, logging, and tracing. |
+
+## Reliability and lifecycle
+
+Shipping, recovering, scheduling, and handling the data you hold about people.
+
+| Skill | Routes when |
+| --- | --- |
+| `release-engineering` | Use when cutting a release, writing a changelog, choosing a version, or planning rollback. |
+| `backup-and-disaster-recovery` | Use when designing backups, setting recovery objectives, or planning for data loss. |
+| `background-jobs-and-scheduling` | Use when adding cron or a job queue, or when jobs overlap, drift, or run twice. |
+| `privacy-and-data-retention` | Use when handling personal data, implementing deletion, or setting retention policy. |
 
 ## Security
 
-Finding exploitable defects in code, dependencies, and response headers.
+Finding exploitable defects in code, dependencies, response headers, and agent inputs.
 
 | Skill | Routes when |
 | --- | --- |
 | `security-code-review` | Use when reviewing code that handles untrusted input, auth, secrets, or file access. |
 | `dependency-supply-chain-review` | Use when adding or upgrading dependencies, or auditing a dependency tree or lockfile. |
 | `http-security-headers` | Use when setting or reviewing security headers, CSP, or CORS policy. |
+| `prompt-injection-defense` | Use when an LLM reads untrusted content, or an agent acts on model decisions. |
 
 ## LLM and agent engineering
 
-Building on language models, and writing and dispatching agent skills.
+Building on language models, and writing, serving and dispatching agent skills.
 
 | Skill | Routes when |
 | --- | --- |
 | `llm-application-development` | Use when building on language models: retrieval, prompts, evaluation, or tool calling. |
+| `mcp-server-authoring` | Use when building an MCP server or tool, or exposing capabilities to an agent. |
 | `writing-agent-skills` | Use when authoring or debugging an agent skill, or when triggers are wrong. |
-| `dispatching-parallel-agents` | Use when independent work items could run concurrently, or splitting a task across subagents. |
+| `dispatching-parallel-agents` | Use when independent work items could run concurrently, or splitting work across subagents. |
 
 ## Cross-cutting correctness
 

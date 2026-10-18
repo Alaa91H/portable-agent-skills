@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: "Use when about to report work complete or fixed, or before committing or opening a pull request."
+description: "Use when about to report work complete or fixed, or before committing."
 ---
 
 

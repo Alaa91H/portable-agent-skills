@@ -1,6 +1,6 @@
 ---
 name: database-migrations
-description: Use when writing or running schema migrations, backfills, or when a migration blocks queries.
+description: Use when running schema migrations or backfills, or when a migration blocks queries.
 ---
 
 # Database migrations
