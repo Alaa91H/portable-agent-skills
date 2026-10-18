@@ -10,7 +10,7 @@ The routing sentence is the skill's exact `description`. Changing it changes whe
 the agent reaches for the skill, so treat it as reviewed surface rather than
 incidental wording.
 
-47 skills, grouped by cluster.
+59 skills, grouped by cluster.
 
 
 ## Craft and process
@@ -27,7 +27,7 @@ Deciding what to do, doing it test-first, and proving it works.
 
 ## Testing and review
 
-Getting work checked, acting on the feedback, and proving nothing regressed.
+Getting work checked, acting on the feedback, and proving it under load.
 
 | Skill | Routes when |
 | --- | --- |
@@ -35,6 +35,7 @@ Getting work checked, acting on the feedback, and proving nothing regressed.
 | `receiving-code-review` | Use when code-review comments arrive, especially when they conflict. |
 | `property-based-testing` | Use when testing structured or invalid input, or when examples keep missing bugs. |
 | `webapp-testing` | Use when verifying a web app in a real browser, or debugging a UI issue. |
+| `contract-and-load-testing` | Use when writing Pact contract tests, or load testing an API with k6 or JMeter. |
 | `refactoring-without-breaking-behaviour` | Use when restructuring code where existing tests must keep passing. |
 
 ## Working in a codebase
@@ -73,7 +74,7 @@ Building and reviewing interfaces, including localisation and WCAG conformance.
 
 ## APIs and integrations
 
-HTTP and GraphQL contracts, versioning, webhooks, and authentication.
+HTTP and GraphQL contracts, versioning, webhooks, authentication, and payments.
 
 | Skill | Routes when |
 | --- | --- |
@@ -82,6 +83,7 @@ HTTP and GraphQL contracts, versioning, webhooks, and authentication.
 | `graphql-api-security` | Use when exposing or reviewing a GraphQL API, or when it is slow or being abused. |
 | `webhook-integration` | Use when sending or receiving webhooks, or verifying webhook signatures. |
 | `oauth-authentication` | Use when implementing login, token handling, sessions, or OAuth flows. |
+| `payments-integration` | Use when integrating a payment provider, or handling subscriptions or payment webhooks. |
 
 ## Data and storage
 
@@ -94,9 +96,20 @@ Queries, schema changes, caching, and background processing.
 | `caching-and-stampedes` | Use when adding or tuning a cache, or when a hot key overwhelms the database. |
 | `message-queue-processing` | Use when writing or reviewing queue consumers, workers, retries, or dead letter queues. |
 
+## Data engineering
+
+Modelling the warehouse, orchestrating pipelines, and tuning distributed compute.
+
+| Skill | Routes when |
+| --- | --- |
+| `dbt-modeling` | Use when writing dbt models, incremental models, or fixing a broken build. |
+| `dimensional-modeling` | Use when designing a warehouse schema, or choosing a slowly changing dimension type. |
+| `orchestration-dag-authoring` | Use when writing or debugging Airflow, Dagster or Prefect pipelines. |
+| `spark-performance` | Use when a Spark job is slow, data skew is suspected, or joins misbehave. |
+
 ## Infrastructure and operations
 
-Containers, orchestration, infrastructure code, pipelines, and incidents.
+Containers, orchestration, infrastructure code, pipelines, hosts, and incidents.
 
 | Skill | Routes when |
 | --- | --- |
@@ -104,7 +117,20 @@ Containers, orchestration, infrastructure code, pipelines, and incidents.
 | `kubernetes-deployment` | Use when writing or reviewing Kubernetes manifests, probes, limits, or rollouts. |
 | `infrastructure-as-code` | Use when writing Terraform or other infrastructure code, or diagnosing drift. |
 | `ci-pipeline-security` | Use when writing or reviewing CI workflow files, or assessing pipeline supply chain risk. |
+| `linux-ops-debugging` | Use when debugging a Linux host, a systemd unit, disk, permissions, or SSH. |
 | `incident-response` | Use when responding to a production incident, outage, or alert. |
+
+## Platform operations
+
+Cloud posture and cost, secrets and flags, search relevance, and mobile release.
+
+| Skill | Routes when |
+| --- | --- |
+| `cloud-security-and-cost` | Use when reviewing cloud IAM, network exposure, or reducing cloud spend. |
+| `feature-flag-and-secrets-lifecycle` | Use when adding or retiring a feature flag, or rotating secrets without downtime. |
+| `search-engineering` | Use when designing an Elasticsearch index, or tuning query relevance. |
+| `mobile-performance-and-release` | Use when a mobile app is slow to start, janky to scroll, or rejected by review. |
+| `email-deliverability` | Use when sending email, configuring SPF, DKIM or DMARC, or when mail is being filtered. |
 
 ## Performance and observability
 

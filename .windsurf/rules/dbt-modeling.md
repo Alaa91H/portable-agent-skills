@@ -1,0 +1,151 @@
+---
+trigger: model_decision
+description: "Use when writing dbt models, incremental models, or fixing a broken build."
+---
+
+
+# dbt modeling
+
+## Layering
+
+Three layers, and the naming makes the intent obvious:
+
+```
+staging/       stg_<source>__<entity>.sql      one-to-one with the source
+intermediate/  int_<entity>s_<verb>ed.sql      business logic, not source-shaped
+marts/         fct_ and dim_                   what consumers read
+```
+
+Intermediate models are named by **business grouping, not by source system**.
+Grouping by source produces a model per source that nothing wants to read.
+
+**Narrow the DAG, widen the tables.** Many models should feed one intermediate
+model, and that model should feed the next. Several outputs from one model is a
+smell that the logic has not been factored yet.
+
+Do not build all three layers by reflex. Under roughly ten marts, staging alone
+is often correct, and the intermediate layer becomes ceremony.
+
+## The three-layer reference implementation
+
+```sql
+-- staging: rename, cast, deduplicate. No business logic.
+select
+  cast(id as bigint)        as order_id,
+  cast(total_cents as bigint) as total_cents,
+  _etl_updated_at
+from {{ source('raw', 'orders') }}
+qualify row_number() over (partition by id order by _etl_updated_at desc) = 1
+
+-- intermediate: business logic, renamed away from the source shape
+select
+  customer_id,
+  date_trunc('day', created_at) as order_date,
+  sum(total_cents) / 100.0    as revenue
+from {{ ref('stg_orders__orders') }}
+group by 1, 2
+
+-- mart: the contract consumers depend on
+select * from {{ ref('int_orders_aggregated_to_customer') }}
+```
+
+## Incremental models
+
+`is_incremental()` returns true only when the table exists, the materialization
+is `incremental`, and `--full-refresh` was not passed.
+
+The filter that is wrong most often:
+
+```sql
+{% if is_incremental() %}
+  where event_time >= (select coalesce(max(event_time), '1900-01-01') from {{ this }})
+{% endif %}
+```
+
+Two details carry the whole correctness story. The `coalesce` sentinel is
+required, because `max()` over an empty or truncated table returns NULL and
+`event_time >= NULL` is never true, which silently reloads everything. And the
+comparison is `>=`, not `>`, so rows sharing the maximum timestamp are not
+skipped.
+
+## unique_key
+
+It takes **column names or a list of column names**, never a concatenated
+expression:
+
+```yaml
+config:
+  unique_key: ['user_id', 'session_number']
+```
+
+An expression string works on some adapters and not others, and the list form is
+what the documentation recommends.
+
+**NULLs in a `unique_key` column break the merge.** The row matches nothing and
+is inserted again on every run. Coalesce first, or generate a surrogate key:
+
+```sql
+{{ dbt_utils.generate_surrogate_key(['user_id', 'coalesce(session_number, 0)']) }}
+```
+
+`insert_overwrite` **ignores `unique_key` entirely**, because it operates on
+partitions rather than rows. Using it on an incremental model is not a merge at
+all.
+
+## on_schema_change
+
+This is the setting most often misremembered, and the default does nothing:
+
+| Value | Behaviour |
+| --- | --- |
+| `ignore` | **The default.** New columns are silently not added. Dropping a column makes the run fail. |
+| `fail` | Any divergence is an error |
+| `append_new_columns` | Adds new columns, never removes |
+| `sync_all_columns` | Adds and removes, and applies type changes |
+
+Two limits that catch people:
+
+- **No option backfills.** A new column is added empty on existing rows; you
+  still need a separate backfill run.
+- **Only top-level changes are tracked.** Nested or struct column changes do not
+  trigger it, so a changed subfield passes unnoticed.
+
+`fail` is the right default for a model someone else reads, because it turns a
+silent divergence into a build failure.
+
+## Running it
+
+```sh
+dbt run --select my_model+              # rebuild downstream
+dbt run --full-refresh --select my_model+
+dbt test --select my_model+             # not just dbt run
+```
+
+The trailing `+` matters: rebuilding a model alone leaves every downstream model
+stale, which looks like the fix did not work.
+
+A `full_refresh: true` model config **overrides** the command-line flag, so
+`--full-refresh` may quietly do nothing. Check the config first.
+
+## Performance
+
+- `dbt compile` before `dbt run` in CI, so you fail on SQL errors without
+  spending warehouse credits.
+- `dbt run --select state:modified+` rebuilds only what changed and its
+  downstream, which is usually the largest speedup available.
+- Look at the compiled SQL, not the Jinja. Set `print()` or use
+  `dbt show --inline` to see what a macro actually produced.
+- Materializing intermediates as `ephemeral` keeps them out of the warehouse
+  entirely, which is right for a small refactor and wrong for something an
+  analyst queries.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "Incremental is always faster." | It is faster once the filter is correct. A wrong filter reloads the table and is slower than a full run. |
+| "The default on_schema_change is fine." | The default is `ignore`, which does not add columns. |
+| "unique_key can be an expression." | Use a list of column names. NULLs in them break the merge. |
+| "I rebuilt the model, so it is fixed." | Downstream models are stale without `+`. |
+| "I will add an intermediate layer." | Below about ten marts, staging plus marts is usually the right size. |
+| "Tests are separate." | Run `dbt test` on every run. An untested mart is a contract nobody checks. |

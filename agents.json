@@ -22,10 +22,18 @@
     },
     {
       "id": "http-catalog",
-      "name": "HTTP catalog",
-      "description": "Serve dist/ from any static host; agents that support remote catalogs fetch index.json.",
+      "name": "Kilo / Roo remote catalog",
+      "description": "This collection's dist/index.json uses the {name, version, files[]} shape that Kilo Code's skills.urls consumes today. Entry files are fetched from <base><name>/<file>.",
       "entry": "dist/index.json",
-      "build": "scripts/build-catalog.sh"
+      "build": "scripts/build-catalog.sh",
+      "status": "widely implemented"
+    },
+    {
+      "id": "well-known-discovery",
+      "name": "Cloudflare discovery draft v0.2.0",
+      "description": "The draft well-known convention expects /.well-known/agent-skills/index.json with {name, type, url, digest} entries and sha256 digests over raw bytes. Not ratified, and adoption is negligible.",
+      "entry": ".well-known/agent-skills/index.json",
+      "status": "draft, not ratified by agentskills.io"
     },
     {
       "id": "plugin",
@@ -34,12 +42,23 @@
       "usage": "/plugin marketplace add <owner>/<repo>"
     },
     {
+      "id": "registry",
+      "name": "skills.sh registry",
+      "description": "Groupings for the skills.sh repository page, via skills.sh.json.",
+      "usage": "npx skills add <owner>/<repo>"
+    },
+    {
       "id": "reference-validator",
       "name": "skills-ref",
       "description": "Validate against the open specification with the reference CLI.",
       "usage": "skills-ref validate <skill-dir>"
     }
   ],
+  "mcp_note": {
+    "extension": "io.modelcontextprotocol/skills (SEP-2640, final 2026-09-13)",
+    "discovery": "skills/list and skills/get JSON-RPC methods, not a file",
+    "caveat": "There is no skill://index.json in the final specification; an earlier draft proposed one and it was removed. No official SDK has merged support yet, so this collection does not claim MCP compatibility. Serving dist/index.json is a filesystem-style catalog for agents that fetch one."
+  },
   "agents": [
     {
       "id": "opencode",

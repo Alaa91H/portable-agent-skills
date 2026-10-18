@@ -15,12 +15,13 @@
     },
     {
       "title": "Testing and review",
-      "description": "Getting work checked, acting on the feedback, and proving nothing regressed.",
+      "description": "Getting work checked, acting on the feedback, and proving it under load.",
       "skills": [
         "requesting-code-review",
         "receiving-code-review",
         "property-based-testing",
         "webapp-testing",
+        "contract-and-load-testing",
         "refactoring-without-breaking-behaviour"
       ]
     },
@@ -57,13 +58,14 @@
     },
     {
       "title": "APIs and integrations",
-      "description": "HTTP and GraphQL contracts, versioning, webhooks, and authentication.",
+      "description": "HTTP and GraphQL contracts, versioning, webhooks, authentication, and payments.",
       "skills": [
         "rest-api-design",
         "api-contract-versioning",
         "graphql-api-security",
         "webhook-integration",
-        "oauth-authentication"
+        "oauth-authentication",
+        "payments-integration"
       ]
     },
     {
@@ -77,14 +79,36 @@
       ]
     },
     {
+      "title": "Data engineering",
+      "description": "Modelling the warehouse, orchestrating pipelines, and tuning distributed compute.",
+      "skills": [
+        "dbt-modeling",
+        "dimensional-modeling",
+        "orchestration-dag-authoring",
+        "spark-performance"
+      ]
+    },
+    {
       "title": "Infrastructure and operations",
-      "description": "Containers, orchestration, infrastructure code, pipelines, and incidents.",
+      "description": "Containers, orchestration, infrastructure code, pipelines, hosts, and incidents.",
       "skills": [
         "docker-containerization",
         "kubernetes-deployment",
         "infrastructure-as-code",
         "ci-pipeline-security",
+        "linux-ops-debugging",
         "incident-response"
+      ]
+    },
+    {
+      "title": "Platform operations",
+      "description": "Cloud posture and cost, secrets and flags, search relevance, and mobile release.",
+      "skills": [
+        "cloud-security-and-cost",
+        "feature-flag-and-secrets-lifecycle",
+        "search-engineering",
+        "mobile-performance-and-release",
+        "email-deliverability"
       ]
     },
     {

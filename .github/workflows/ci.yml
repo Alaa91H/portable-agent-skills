@@ -25,6 +25,9 @@ jobs:
       - name: Check generated flat rule files are in sync
         run: scripts/sync-rules.sh --check
 
+      - name: Check descriptions match the canonical set
+        run: scripts/set-descriptions.sh --check
+
       - name: Check the documentation catalog matches the skills
         run: scripts/build-catalog-doc.sh --check
 

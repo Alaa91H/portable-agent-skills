@@ -1,0 +1,120 @@
+---
+name: orchestration-dag-authoring
+description: Use when writing or debugging Airflow, Dagster or Prefect pipelines.
+---
+
+# Orchestration and DAG authoring
+
+## The rule that catches everyone
+
+**The scheduler re-executes all code in the DAG folder on an interval, not once
+per run.** The default is every 30 seconds. Any top-level database call, API
+call, or `Variable.get()` therefore fires 120 times an hour regardless of how
+rarely the DAG runs.
+
+```python
+# Wrong: this runs on every scheduler parse, 120 times an hour
+conn = get_hook()                       # top-level network call
+latest = Variable.get("config")         # top-level secrets fetch
+df = pd.read_parquet("s3://bucket/x")   # top-level data read
+
+# Right: inside the task, where it runs once per task execution
+@task
+def load(): return pd.read_parquet("s3://bucket/x")
+```
+
+For secrets specifically, enable `AIRFLOW__SECRETS__USE_CACHE` rather than
+removing the `Variable.get`, because the cache still respects the parse loop.
+
+A measurable symptom: a DAG with one top-level query took **1000 extra seconds
+just to parse**, on every scheduler cycle, forever.
+
+## Treat tasks as transactions
+
+A task may re-run. Design so that running it twice is harmless:
+
+- **Upsert, never insert.** An `insert` on retry produces duplicates that no one
+  notices until a report is wrong.
+- **Pin to `data_interval_start`, never to "latest available".** Someone can
+  update the input between retries, and a retry then produces output that
+  diverges from the previous run.
+- **Never call `datetime.now()` inside a task** for anything that affects the
+  result. Use the data interval, so a retry computes the same answer.
+- **Do not leave partial output.** If a task writes to S3, write to a temporary
+  path and move it into place, or a failed retry leaves a half-file where
+  consumers expect a complete one.
+
+```python
+@task
+def build(ds, **context):
+    start = context["data_interval_start"]      # stable across retries
+    end   = context["data_interval_end"]
+    return upsert(load_window(start, end))
+```
+
+## Structure
+
+Use one dependency syntax consistently:
+
+```python
+extract >> transform >> [publish, notify]
+```
+
+And put shared configuration in `default_args`, not repeated per task, because
+retries and timeouts that differ between tasks are impossible to reason about.
+
+## Passing data between tasks
+
+| Size | Mechanism |
+| --- | --- |
+| Small (kilobytes) | XCom |
+| Large (megabytes, or anything with a non-JSON type) | Object storage, with the URI passed via XCom |
+
+Do not pass files on local disk between tasks. Under the Kubernetes or Celery
+executors, consecutive tasks run on different machines and the file is not there.
+
+## Offload the real work
+
+A task that runs for hours should submit to a compute engine, not hold a worker
+slot for hours:
+
+- Spark for data processing
+- Ray or a job queue for anything else
+
+A worker slot held for a long transformation is a concurrency limit you have
+imposed on yourself.
+
+## Debugging
+
+```sh
+airflow dags list-import-errors
+airflow tasks test <dag_id> <task_id> <logical_date>   # run one task in isolation
+airflow dags show <dag_id>                            # confirm the structure
+airflow dags backfill <dag_id> -s 2026-01-01 -e 2026-01-07
+```
+
+`list-import-errors` is the first thing to check for anything that looks like a
+missing task: a DAG with a syntax or import error is not scheduled at all, and
+it looks identical to one that has not run yet.
+
+## Automatic pausing
+
+```ini
+[scheduler]
+max_consecutive_failed_dag_runs = 3
+max_consecutive_failed_dag_runs_per_dag = 3
+```
+
+A DAG that keeps failing is paused rather than consuming a worker slot forever.
+Turn this on: a broken DAG that retries indefinitely is worse than a paused one
+that someone is paged about.
+
+## Anti-rationalisations
+
+| Excuse | Reality |
+| --- | --- |
+| "It is at the top because it is cheap." | It runs on every parse, which is 120 times an hour. |
+| "Insert is fine, the DAG will not re-run." | Retries are automatic. Any retry duplicates rows. |
+| "Latest data is what we want." | Then two runs of the same interval produce different output. Use the data interval. |
+| "Now() is simpler than the interval." | It makes the task non-reproducible, which defeats retry entirely. |
+| "The file is on the shared volume." | Only true with the local executor. Kubernetes and Celery run tasks on different hosts. |
