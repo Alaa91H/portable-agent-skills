@@ -79,18 +79,38 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           version="$(tr -d '[:space:]' < VERSION)"
+
+          # Written to a real file rather than passed as <(...). Process
+          # substitution hands gh a path on /dev/fd, which is a pipe rather than
+          # a regular file, and the release silently fails to publish with an
+          # error that names neither the notes nor the substitution.
+          notes="$RUNNER_TEMP/release-notes.md"
+          awk -v v="$version" '
+            index($0, "## [" v "]") == 1 { printing = 1; next }
+            printing && /^## \[/           { exit }
+            printing                     { print }
+          ' CHANGELOG.md > "$notes"
+
+          if [ ! -s "$notes" ]; then
+            echo "::error::extracted release notes for $version are empty"
+            exit 1
+          fi
+          echo "release notes: $(wc -l < "$notes") lines, $(wc -c < "$notes") bytes"
+          echo "assets:"
+          ls -l out/ dist/index.json dist/update-manifest.json
+
           gh release create "$GITHUB_REF_NAME" \
             --title "$GITHUB_REF_NAME" \
-            --notes-file <(awk -v v="$version" '
-              $0 == "## [" v "]" { printing = 1; next }
-              printing && /^## \[/   { exit }
-              printing               { print }
-            ' CHANGELOG.md) \
+            --notes-file "$notes" \
             out/skills-*.tar.gz \
             out/SHA256SUMS \
-          gh release upload "$GITHUB_REF_NAME" dist/index.json dist/update-manifest.json \
-            --clobber
+            dist/index.json \
+            dist/update-manifest.json
+
+          gh release view "$GITHUB_REF_NAME" --json tagName,assets \
+            --jq '"published \(.tagName) with \(.assets | length) asset(s)"'
 
       - name: Summarise what was published
         run: |
