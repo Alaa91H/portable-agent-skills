@@ -19,12 +19,12 @@ jobs:
       issues: write
 
     steps:
-      # Pinned to a commit SHA, not a tag. A tag can be moved after it has been
-  # reviewed; a commit cannot. This is the rule the ci-pipeline-security skill
-  # in this collection states, and a repository that ships the rule should
-  # follow it. Dependabot keeps the pin current.
-  # v4.4.0
-  - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+          # Pinned to a commit SHA, not a tag. A tag can be moved after it has been
+      # reviewed; a commit cannot. This is the rule the ci-pipeline-security
+      # skill in this collection states, and a repository that ships the rule
+      # should follow it. Dependabot keeps the pin current.
+      # v4.4.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Check normalisation (no BOM, no CRLF)
         run: scripts/normalize.sh --check
@@ -46,6 +46,9 @@ jobs:
 
       - name: Check every translation matches the collection
         run: scripts/check-i18n.sh
+
+      - name: Check the workflows are pinned and correctly indented
+        run: scripts/check-workflows.sh
 
       - name: Regression-test the validator itself
         run: tests/run-tests.sh

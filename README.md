@@ -190,7 +190,7 @@ scripts/release.sh 1.2.0            # run every gate, then commit and tag
 scripts/release.sh 1.2.0 --dry-run  # run every gate, change nothing
 ```
 
-The script refuses to cut a release unless all eight gates pass and
+The script refuses to cut a release unless all nine gates pass and
 `CHANGELOG.md` already has a section for the version. A tag can therefore never
 point at a collection that does not validate.
 
