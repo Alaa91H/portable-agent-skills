@@ -10,20 +10,19 @@
 # comment never lies about which release is pinned.
 version: 2
 updates:
-  - package-ecosystem: github-actions
-    directory: /
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: weekly
-      day: monday
+      interval: "weekly"
+      day: "monday"
       time: "06:00"
     open-pull-requests-limit: 3
     labels:
-      - dependencies
-      - ci
+      - "dependencies"
+      - "ci"
     commit-message:
       prefix: "ci"
-      include: scope
     groups:
-      github-actions:
+      actions:
         patterns:
           - "*"
