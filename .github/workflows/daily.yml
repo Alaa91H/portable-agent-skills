@@ -32,7 +32,7 @@ jobs:
       # skill in this collection states, and a repository that ships the rule
       # should follow it. Dependabot keeps the pin current.
       # v4.4.0
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Every gate
         run: |
@@ -65,7 +65,7 @@ jobs:
       # skill in this collection states, and a repository that ships the rule
       # should follow it. Dependabot keeps the pin current.
       # v4.4.0
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0   # the catalog cache key is derived from the commit count
 
@@ -110,7 +110,7 @@ jobs:
       # skill in this collection states, and a repository that ships the rule
       # should follow it. Dependabot keeps the pin current.
       # v4.4.0
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Fingerprint the upstream specification
         # A skill collection validates against a specification that can change
