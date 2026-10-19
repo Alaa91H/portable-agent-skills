@@ -41,6 +41,20 @@ correction is stated inside the skill with its reasoning.
   repository shipped and could not see from the platform it was written on.
 - **`scripts/check-i18n.sh`** — gates the translations against
   `skills.sh.json`, in CI and in the release gate set.
+- **`SECURITY.md`, issue and pull-request templates, and `dependabot.yml`** are
+  new.
+- **Every file that carries the version is now moved by one script.**
+  `scripts/set-version.sh` owns `./VERSION`, the marketplace manifest and the
+  README, and verifies itself with the version-consistency gate afterwards.
+  Before this, `release.sh` moved only `./VERSION`, so the v1.2.0 release
+  commit shipped a repository whose own validator rejected it and both
+  workflows went red on the commit that was supposed to be the good one.
+- **The release gates now fail fast.** The gate list runs from cheapest to most
+  expensive and the script stops at the first failure instead of running the
+  full regression suite after a cheap gate has already failed.
+- **Workflow actions are pinned to commit SHAs** rather than tags, with
+  `dependabot.yml` keeping the pins current. A tag can be moved after it has
+  been reviewed; a commit cannot.
 
 ### Changed
 
@@ -87,6 +101,38 @@ correction is stated inside the skill with its reasoning.
   public repository is unreadable without authentication, so a red run used to
   say that something broke and nothing about what. Annotations are served by the
   check-runs API without authentication.
+- **A pipeline into `grep` could report a failure that did not happen.** Under
+  `set -o pipefail`, the writer of a pipeline is killed by `SIGPIPE` when the
+  reader exits early, and the resulting 141 becomes the status of the whole
+  pipeline. Fifteen checks read that status. Every one of them now uses a
+  here-string, which has no second process and so nothing that can fail. It is
+  also faster: no fork for `printf`, measured at 59s against 99s for 2000
+  iterations of the id-list check.
+- **Four exit traps in the regression suite, each replacing the last.** The trap
+  that removed the temporary directory was installed first and overwritten
+  three times, so the directory leaked on every run. There is now one trap that
+  does everything.
+- **The name check did not reject a trailing hyphen.** The pattern was
+  `^-|-\$`, and in an extended regular expression a backslash before the
+  dollar makes it a literal dollar sign rather than an anchor, so the second
+  alternative matched the two characters `-$` and a name ending in a hyphen was
+  never rejected. The message promised a check that half of it did not perform.
+- **`resolve_path` in `install.sh` had a duplicated case arm** where `../*` was
+  meant, so a destination outside the working directory was not resolved to an
+  absolute path.
+- **`docs/catalog.md.tmp.808` was committed** and sat in the tree for a
+  release. It was the fingerprint of an interrupted run, and the process id in
+  its name means every interrupted run produces a different file that nothing
+  comparing content would notice. The generators now clean up on exit, and the
+  build fails if a temporary artefact is found anywhere in the tree.
+- **The README described 79 skills, 59 skills and a 23-case suite** while the
+  collection was at 84 skills and a 36-case suite, claimed seven release gates
+  when there were eight, gave the description length as 80 to 110 characters
+  when it is 60 to 84, described the published tarball as signed when only
+  SHA-256 sums are attached, and gave the plugin install command as
+  `essential-skills@essential-agent-skills` when the repository is
+  `portable-agent-skills`. The title and the copyright line used the old name
+  as well.
 
 ---
 

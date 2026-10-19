@@ -137,7 +137,7 @@ resolve_path() {
   local p="$1"
   case "$p" in
     '$HOME'/*) p="$HOME/${p#\$HOME/}" ;;
-    ./*|./*) p="$(pwd)/${p#./}" ;;
+    ./*|../*) p="$(pwd)/${p#./}" ;;
   esac
   printf '%s' "$p"
 }
@@ -180,7 +180,7 @@ fi
 if [ -n "$DEST" ]; then
   target="$(resolve_path "$DEST")"
 else
-  line="$(printf '%s\n' "$AGENTS_TABLE" | grep "^${AGENT}|" || true)"
+  line="$(grep "^${AGENT}|" <<<"$AGENTS_TABLE" || true)"
   [ -n "$line" ] || die "unknown agent '$AGENT'. Run ./install.sh to see supported agents."
   localp="$(printf '%s' "$line" | cut -d'|' -f3)"
   globalp="$(printf '%s' "$line" | cut -d'|' -f4)"

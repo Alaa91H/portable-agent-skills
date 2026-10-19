@@ -47,12 +47,11 @@ done
 [ -n "$NEW" ] || die "usage: scripts/release.sh <version> [--dry-run]"
 
 # ---------------------------------------------------------------- validate
-if ! printf '%s' "$NEW" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+if ! grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$' <<<"$NEW"; then
   die "'$NEW' is not a semantic version (expected MAJOR.MINOR.PATCH)"
 fi
 
 step "Gates"
-fail=0
 for gate in \
   "scripts/normalize.sh --check" \
   "scripts/set-descriptions.sh --check" \
@@ -69,10 +68,15 @@ do
   else
     printf '  %sFAIL%s  %s\n' "$RED" "$RST" "$gate"
     printf '%s\n' "$out" | tail -n 12 | sed 's/^/          /'
-    fail=1
+    # Stop here rather than running the remaining gates. The list runs from
+    # cheapest to most expensive, and the last one is the full regression suite.
+    # A release that fails after twenty minutes of tests taught you nothing you
+    # would not have learned in thirty seconds, which is exactly what happened
+    # here: the first attempt ran the whole suite before reporting a defect
+    # that the first gate would have caught.
+    die "gate failed; nothing was released"
   fi
 done
-[ "$fail" -eq 0 ] || die "gates failed; nothing was released"
 
 CUR="$(current_version)"
 if [ "$(git rev-list --count HEAD)" -gt 0 ]; then
@@ -105,10 +109,24 @@ if [ "$DRY" -eq 1 ]; then
 fi
 
 step "Cutting release $NEW"
-printf '%s\n' "$NEW" > "$VERSION_FILE"
-ok "VERSION set to $NEW"
 
-git add "$VERSION_FILE" || die "git add failed"
+# Every file that carries the version is moved by one script, in the same
+# commit, or the repository's own validator fails on the release commit.
+#
+# This is not hypothetical. check-repo-state.sh compares the version the
+# marketplace manifest advertises against ./VERSION, and the v1.2.0 release
+# commit changed one of them and not the other. The tagged build was therefore
+# broken by the tag itself: the validate workflow and the release workflow both
+# went red on the commit that was supposed to be the good one.
+#
+# The rule this encodes: a version is moved by scripts/set-version.sh and by
+# nothing else. A half-moved version is the failure mode, and it is silent.
+if ! bash scripts/set-version.sh "$NEW"; then
+  die "could not move the version to every file"
+fi
+ok "version moved everywhere"
+
+git add "$VERSION_FILE" ".claude-plugin/marketplace.json" README.md || die "git add failed"
 git commit -q -m "Release $NEW" || die "git commit failed"
 ok "committed"
 

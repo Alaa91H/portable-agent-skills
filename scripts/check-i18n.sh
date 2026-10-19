@@ -114,8 +114,13 @@ while read -r lang; do
     *) fail "$lang: marker does not declare lang=$lang"; continue ;;
   esac
 
-  got_clusters="$(printf '%s' "$marker" | grep -o 'clusters=[0-9]*' | head -n 1 | cut -d= -f2)"
-  got_skills="$(printf '%s' "$marker" | grep -o 'skills=[0-9]*' | head -n 1 | cut -d= -f2)"
+  # The marker is read rather than piped. In a pipeline, head exiting after
+  # the first line closes the pipe and the writer is killed by SIGPIPE, and
+  # under pipefail that 141 becomes the status of the whole pipeline, so the
+  # check reports a missing count that was there. That failure is rare, it is
+  # silent, and it is the reason this collection stopped piping into grep.
+  got_clusters="$(grep -o 'clusters=[0-9]*' <<<"$marker" | head -n 1 | cut -d= -f2)"
+  got_skills="$(grep -o 'skills=[0-9]*' <<<"$marker" | head -n 1 | cut -d= -f2)"
 
   if [ "$got_clusters" != "$want_clusters" ]; then
     fail "$lang: marker claims $got_clusters clusters, repository has $want_clusters"

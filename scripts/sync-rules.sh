@@ -95,11 +95,38 @@ printf '%sgenerating flat rule mirrors%s\n' "$BLD" "$RST"
 written=0
 drift=0
 
+# Every temporary file this script creates is removed on the way out, whatever
+# happens. A run interrupted between creating a temporary file and renaming it
+# leaves the temporary file in the tree, and the next `git add -A` commits it.
+# The name carries the process id, so the file that gets committed is a
+# different one on every run, which is why it is not noticed by anything that
+# compares content.
+#
+# The list is emptied as each file is renamed or removed, so the trap does not
+# delete a file that has already become the real output.
+TMP_FILES=""
+
+cleanup_tmp() {
+  local f
+  for f in $TMP_FILES; do
+    [ -n "$f" ] && rm -f "$f"
+  done
+}
+# TERM and INT are trapped explicitly because a signal that is not trapped
+# terminates the shell without running the EXIT trap. SIGKILL cannot be trapped
+# by anything, so scripts/check-repo-state.sh also fails the build when a
+# temporary file is found in the tree: the gate is the protection, the trap is
+# only tidiness.
+trap cleanup_tmp EXIT
+trap cleanup_tmp TERM
+trap cleanup_tmp INT
+
 emit() {
   # emit <path> <content-producer...> ; compares before writing when checking
   local path="$1"
   shift
   local tmp="$path.tmp.$$"
+  TMP_FILES="$TMP_FILES $tmp"
 
   # A write that fails must stop the run. Without this, a redirect to a path
   # whose directory does not exist fails, the status is discarded, and the
@@ -115,18 +142,21 @@ emit() {
 
   if [ -f "$path" ] && cmp -s "$tmp" "$path"; then
     rm -f "$tmp"
+    TMP_FILES="${TMP_FILES% $tmp}"
     return 0
   fi
 
   if [ "$CHECK" -eq 1 ]; then
     printf '  %sdrift%s   %s\n' "$RED" "$RST" "$path"
     rm -f "$tmp"
+    TMP_FILES="${TMP_FILES% $tmp}"
     drift=$((drift + 1))
     return 1
   fi
 
   mkdir -p "$(dirname "$path")"
   mv "$tmp" "$path"
+  TMP_FILES="${TMP_FILES% $tmp}"
   printf '  %swrote%s   %s\n' "$GRN" "$RST" "$path"
   written=$((written + 1))
   return 0

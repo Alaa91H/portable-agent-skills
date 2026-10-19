@@ -59,6 +59,26 @@ missing=0
 
 tmp="$OUT.tmp.$$"
 
+# The temporary file is removed on the way out, whatever happens. Without this
+# a run that is interrupted between creating the temporary file and renaming it
+# leaves the temporary file behind, and the next `git add -A` commits it. That
+# is not hypothetical: docs/catalog.md.tmp.808 was committed to this repository
+# and sat in the tree for a release, because the run that created it was
+# interrupted and the file was picked up by the next commit.
+#
+# After a successful rename the temporary file no longer exists and the trap
+# is a no-op, so it costs nothing in the normal path.
+#
+# EXIT alone is not enough. A signal that is not trapped terminates the shell
+# without running the EXIT trap, so TERM and INT are trapped explicitly. A
+# SIGKILL cannot be trapped by anything, which is why scripts/check-repo-state.sh
+# also fails the build when a temporary file is found in the tree: the gate is
+# the protection, and the trap is only tidiness.
+cleanup_tmp() { rm -f "$tmp"; }
+trap cleanup_tmp EXIT
+trap cleanup_tmp TERM
+trap cleanup_tmp INT
+
 {
   cat <<'HEADER'
 # Catalog

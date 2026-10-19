@@ -70,7 +70,7 @@ for gate in $GATES; do
     failed=$((failed + 1))
     # Keep the report short: the full output of a generator is long, and the
     # first few drift lines are what a reader acts on.
-    detail="$(printf '%s\n' "$out" | grep -v '^$' | head -n 12)"
+    detail="$(grep -v '^$' <<<"$out" | head -n 12)"
     report+="
 
 ### \`$gate\` (exit $rc)

@@ -97,7 +97,7 @@ EOF
     }"
 
   count=$((count + 1))
-  printf '  %-40s %s files\n' "$name" "$(printf '%s\n' "$files" | grep -c '')"
+  printf '  %-40s %s files\n' "$name" "$(grep -c '' <<<"$files")"
 done
 
 # A content digest over every published file, so a client can tell "newer" from

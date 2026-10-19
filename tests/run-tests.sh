@@ -16,7 +16,23 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VALIDATOR="$ROOT/scripts/validate-skills.sh"
 TMP="$(mktemp -d)"
-trap 'rm -rf "$TMP"' EXIT
+
+# One exit trap, doing everything.
+#
+# Each `trap ... EXIT` replaces the previous one, and this file had four: the
+# one that removed the temporary directory was installed first and then
+# overwritten three times by the heal functions further down. The last one
+# survived, so the temporary directory was never removed and leaked on every
+# run. The functions are defined here as no-ops and redefined later, so the
+# trap is safe to call even if the run exits before they are reached.
+heal_index() { :; }
+heal_i18n() { :; }
+cleanup_all() {
+  heal_index 2>/dev/null || true
+  heal_i18n 2>/dev/null || true
+  rm -rf "$TMP"
+}
+trap cleanup_all EXIT
 
 if [ ! -f "$VALIDATOR" ]; then
   printf 'error: %s not found\n' "$VALIDATOR" >&2
@@ -76,7 +92,7 @@ run_case() {
     return
   fi
 
-  if [ -n "$pattern" ] && ! printf '%s\n' "$out" | grep -qF -- "$pattern"; then
+  if [ -n "$pattern" ] && ! grep -qF -- "$pattern" <<<"$out"; then
     printf '  %sFAIL%s  %-24s missing message: %s\n' "$RED" "$RST" "$case_name" "$pattern"
     printf '%s\n' "$out" | sed 's/^/          /'
     annotate "$case_name" "missing message: $pattern"$'\n'"$out"
@@ -354,7 +370,7 @@ if [ -n "$NORMALIZE" ] && [ -x "$NORMALIZE" ] || [ -n "$NORMALIZE" ]; then
   rm -f "$fixture"
   trap - RETURN
 
-  if printf '%s' "$enc_out" | grep -q 'need normalizing'; then
+  if grep -q 'need normalizing' <<<"$enc_out"; then
     printf '  %sok%s    %s\n' "$GRN" "$RST" normalize-detects-planted-crlf
     passes=$((passes + 1))
   else
@@ -367,7 +383,7 @@ if [ -n "$NORMALIZE" ] && [ -x "$NORMALIZE" ] || [ -n "$NORMALIZE" ]; then
   # working detector either, and it is just as dangerous because the obvious
   # response is to normalise the whole tree.
   clean_out="$(cd "$ROOT" && bash "$NORMALIZE" --check 2>&1)"
-  if printf '%s' "$clean_out" | grep -q 'everything is already normalized'; then
+  if grep -q 'everything is already normalized' <<<"$clean_out"; then
     printf '  %sok%s    %s\n' "$GRN" "$RST" normalize-clean-tree-not-flagged
     passes=$((passes + 1))
   else
@@ -399,7 +415,7 @@ if [ -f "$STATE" ]; then
   assert_state() {
     local label="$1" want="$2" pattern="$3" out rc
     out="$(cd "$ROOT" && bash "$STATE" 2>&1)"; rc=$?
-    if [ "$rc" = "$want" ] && printf '%s' "$out" | grep -q "$pattern"; then
+    if [ "$rc" = "$want" ] && grep -q "$pattern" <<<"$out"; then
       printf '  %sok%s    %s\n' "$GRN" "$RST" "$label"
       passes=$((passes + 1))
     else
@@ -429,10 +445,23 @@ if [ -f "$STATE" ]; then
   export MARKETPLACE="$fx/marketplace.json"
   export VERSION_FILE="$fx/VERSION"
   export SKILLS_DIR="$fx/.opencode/skills"
+  export README_FILE="$fx/README.md"
   export CHECK_EXEC=0
+
+  # The README quotes the update manifest as an example, and that example
+  # carries a version and a count. It is checked against the same two sources
+  # as the marketplace manifest, so the fixture needs one of its own: without
+  # it the real README is compared against the fixture's VERSION and skill
+  # count, and the check fails for a reason that has nothing to do with what
+  # is being tested.
+  write_readme() {
+    printf 'Current release: **%s**\n\n```json\n{\n  "collectionVersion": "%s",\n  "skillCount": %s\n}\n```\n' \
+      "$1" "$1" "$2" > "$fx/README.md"
+  }
 
   # clean fixture: version matches, count matches
   write_marketplace 2 2.0.0
+  write_readme 2.0.0 2
   assert_state state-clean 0 'marketplace version matches VERSION (2.0.0)'
 
   # stale version, which is what shipped here for two releases
@@ -443,8 +472,31 @@ if [ -f "$STATE" ]; then
   write_marketplace 3 2.0.0
   assert_state state-count-drift 1 'advertises 3 skills but 2 are present'
 
+  # the README example frozen at the previous release, which is what shipped
+  # here: 1.1.0 and 67 skills while the collection was at 1.2.0 and 84
+  write_marketplace 2 2.0.0
+  write_readme 1.0.0 2
+  assert_state state-readme-version-drift 1 'README.md quotes version 1.0.0 but VERSION is 2.0.0'
+
+  write_readme 2.0.0 9
+  assert_state state-readme-count-drift 1 'README.md quotes 9 skills but 2 are present'
+
+  # A temporary artefact left by an interrupted run. The file name carries the
+  # process id, so every interrupted run produces a different one and nothing
+  # that compares content ever notices.
+  #
+  # TREE_DIR is exported around the call rather than prefixed to it: a
+  # variable assignment in front of a shell function leaks into the shell
+  # after the function returns in bash, which would make the next assertion
+  # run against the fixture instead of the repository.
+  printf 'x\n' > "$fx/leftover.tmp.4242"
+  export TREE_DIR="$fx"
+  assert_state state-temporary-artefact 1 'temporary artefacts are present'
+  unset TREE_DIR
+  rm -f "$fx/leftover.tmp.4242"
+
   # Back to the real repository, which is the fact CI actually depends on.
-  unset MARKETPLACE VERSION_FILE SKILLS_DIR CHECK_EXEC
+  unset MARKETPLACE VERSION_FILE SKILLS_DIR README_FILE CHECK_EXEC
   assert_state repository-clean 0 'committed as executable'
 fi
 
@@ -454,14 +506,13 @@ fi
 # index. It resets before and after so an interrupted run heals.
 if [ -f "$STATE" ] && git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
   heal_index() { git -C "$ROOT" update-index --chmod=+x install.sh >/dev/null 2>&1; }
-  trap heal_index EXIT
   heal_index
 
   git -C "$ROOT" update-index --chmod=-x install.sh
   out="$(cd "$ROOT" && bash "$STATE" 2>&1)"; rc=$?
   heal_index
 
-  if [ "$rc" != 0 ] && printf '%s' "$out" | grep -q 'not committed as executable'; then
+  if [ "$rc" != 0 ] && grep -q 'not committed as executable' <<<"$out"; then
     printf '  %sok%s    %s\n' "$GRN" "$RST" exec-bit-drift-detected
     passes=$((passes + 1))
   else
@@ -481,13 +532,12 @@ fi
     ar="$ROOT/docs/i18n/ar.md"
     cp "$es" "$TMP/es.keep"; cp "$ar" "$TMP/ar.keep"
     heal_i18n() { cp "$TMP/es.keep" "$es"; cp "$TMP/ar.keep" "$ar"; }
-    trap heal_i18n EXIT
 
     i18n_case() {
       local name="$1" file="$2" needle="$3"
       local out rc
       out="$(cd "$ROOT" && bash scripts/check-i18n.sh 2>&1)"; rc=$?
-      if [ "$rc" != 0 ] && printf '%s' "$out" | grep -qF -- "$needle"; then
+      if [ "$rc" != 0 ] && grep -qF -- "$needle" <<<"$out"; then
         printf '  %sok%s    %s\n' "$GRN" "$RST" "$name"
         passes=$((passes + 1))
       else
@@ -552,8 +602,6 @@ fi
     printf '# orphan\n' > "$ROOT/docs/i18n/it.md"
     i18n_case i18n-undeclared-language "$ROOT/docs/i18n/it.md" 'not declared'
     rm -f "$ROOT/docs/i18n/it.md"
-
-    trap heal_index EXIT
   fi
 
   # ------------------------------------------------ every skill is in a cluster
@@ -572,7 +620,7 @@ fi
     cluster_case() {
       local name="$1" needle="$2" out rc
       out="$(cd "$ROOT" && CLUSTERS_FILE="$clusters" bash scripts/validate-skills.sh --strict 2>&1)"; rc=$?
-      if [ "$rc" != 0 ] && printf '%s' "$out" | grep -qF -- "$needle"; then
+      if [ "$rc" != 0 ] && grep -qF -- "$needle" <<<"$out"; then
         printf '  %sok%s    %s\n' "$GRN" "$RST" "$name"
         passes=$((passes + 1))
       else

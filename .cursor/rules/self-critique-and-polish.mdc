@@ -39,24 +39,22 @@ Review of the intention:  looks fine
 Review of the artifact:   the empty case is not handled
 ```
 
-## Polishing has a order, and most of it is deletion
+## Polishing is mostly deletion, and the order matters
 
 Polishing is usually imagined as addition. It is mostly removal, and the removals
-come in a specific order because each one makes the next one visible:
+have an order, because each one makes the next one visible: delete what is not
+executed before you delete what restates it, or you end up polishing prose
+around dead code and producing beautifully written dead code.
 
-1. **Delete what is not executed.** Dead code, unreachable branches, unused
-   imports, commented-out blocks, debug logging left in.
-2. **Delete what restates the code.** A comment explaining what the next line does
-   is a maintenance cost with no informational return.
-3. **Delete the abstraction that wraps nothing.** A helper called once, for one
-   line, that names nothing the caller did not already know.
-4. **Merge the duplicated branch.** Two paths doing the same thing, differing
-   only in a constant.
-5. **Then, and only then, add.** The one place a comment earns its place is a
-   decision the code cannot express.
+The removal catalogue itself — what counts as unexecuted, what restates the
+code, what is an abstraction that names nothing, and the order to take them in
+— belongs to `dense-code-and-signal`, which owns it and keeps it in one place.
+Duplicating the list here would put two versions of it in the collection, and
+the two would drift.
 
-Doing them in the other order wastes effort: polishing prose around dead code
-produces beautifully written dead code.
+What belongs here is the part that is about self-review rather than about code.
+The last step is *then, and only then, add*, and the one place a comment earns
+its place is a decision the code cannot express.
 
 ## The self-repair loop
 
@@ -183,7 +181,7 @@ Past that point, further polishing is preference, and preference has a budget.
 | "The comments explain things." | Restating the code is a cost with no return. Explain the decision. |
 | "This is defensive programming." | A branch for an impossible case is a branch nobody can test. |
 | "The helper makes it readable." | A helper used once that names nothing adds an indirection. |
-| "It needs more polish." | Say which line, and what wrong about it. Otherwise it is taste. |
+| "It needs more polish." | Say which line, and what is wrong with it. Otherwise it is taste. |
 | "I will keep improving it." | Without a named defect you cannot tell improvement from churn. |
 | "It is readable, so it is correct." | Readability is not a property of correctness. |
 | "Keep improving until nothing more can be found." | You cannot recognise that goal as finished, so it churns. |

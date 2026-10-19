@@ -16,7 +16,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # Pinned to a commit SHA, not a tag. A tag can be moved after it has been
+  # reviewed; a commit cannot. This is the rule the ci-pipeline-security skill
+  # in this collection states, and a repository that ships the rule should
+  # follow it. Dependabot keeps the pin current.
+  # v4.4.0
+  - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0   # the changelog section and the version check need history
 

@@ -145,7 +145,7 @@ validate_skill() {
 
   # ---- id / name -------------------------------------------------------
   [ -n "$id" ] || { fail "$id: id must not be empty"; return; }
-  if ! printf '%s' "$id" | grep -Eq '^[a-z0-9]+(-[a-z0-9]+)*$'; then
+  if ! grep -Eq '^[a-z0-9]+(-[a-z0-9]+)*$' <<<"$id"; then
     fail "$id: id must be lowercase alphanumeric segments joined by single hyphens"
     hint "example: code-review, testing-strategies"
   fi
@@ -197,10 +197,15 @@ validate_skill() {
       fail "$id: name '$name' must match its directory name '$id'"
       hint 'the portable spec requires name == parent directory; OpenCode additionally derives the skill id from this path'
     fi
-    if printf '%s' "$name" | grep -Eq '^-|-\$'; then
+    # The pattern is ^-|-$ and not ^-|-\$. In an extended regular expression
+    # a backslash before the dollar makes it a literal dollar sign rather than
+    # an anchor, so the second alternative matched the two characters "-$" and
+    # a name ending in a hyphen was never rejected. The message promised a
+    # check that half of it did not perform.
+    if grep -Eq '^-|-$' <<<"$name"; then
       fail "$id: name must not start or end with a hyphen"
     fi
-    if printf '%s' "$name" | grep -q -- '--'; then
+    if grep -q -- '--' <<<"$name"; then
       fail "$id: name must not contain consecutive hyphens"
     fi
     [ -n "${SEEN_NAME[$name]:-}" ] && fail "$id: duplicate skill name '$name' (also '${SEEN_NAME[$name]}')"
@@ -222,11 +227,11 @@ validate_skill() {
       warn "$id: description is only ${#desc} chars; state both what it does and when to use it"
       desc_clean=0
     fi
-    if printf '%s' "$desc" | grep -qiE '<[a-zA-Z/][^>]*>'; then
+    if grep -qiE '<[a-zA-Z/][^>]*>' <<<"$desc"; then
       warn "$id: description contains XML-like tags, which are rejected on skill upload"
       desc_clean=0
     fi
-    if ! printf '%s' "$desc" | grep -qiE 'use (this )?(skill )?when|trigger|use when|invoke when'; then
+    if ! grep -qiE 'use (this )?(skill )?when|trigger|use when|invoke when' <<<"$desc"; then
       warn "$id: description has no trigger clause; add 'Use when ...' so the agent can route to it"
       hint 'pattern: <what it does>. Use when <situation, file type or request>.'
       desc_clean=0
@@ -256,7 +261,7 @@ validate_skill() {
   if [ -z "$(printf '%s' "$body" | tr -d '[:space:]')" ]; then
     fail "$id: skill body is empty"
   else
-    lines="$(printf '%s\n' "$body" | grep -c '')"
+    lines="$(grep -c '' <<<"$body")"
     words="$(printf '%s\n' "$body" | wc -w)"
     if [ "$lines" -gt "$MAX_BODY_LINES" ]; then
       warn "$id: body is $lines lines (keep under $MAX_BODY_LINES); move detail into references/"
@@ -270,7 +275,7 @@ validate_skill() {
   # ---- referenced support files ---------------------------------------
   # Only a path separator matters here. Regex escapes such as \s are ordinary
   # content, so match the separator in a reference rather than any backslash.
-  if printf '%s' "$body" | grep -qE '(references|scripts|assets)\\'; then
+  if grep -qE '(references|scripts|assets)\\' <<<"$body"; then
     warn "$id: a file reference uses backslashes; use forward slashes so it also works on POSIX hosts"
   fi
 
@@ -341,8 +346,9 @@ if [ "$SKILLS_DIR_OVERRIDDEN" -eq 0 ] && [ -f "$CLUSTERS_FILE" ]; then
   ERRORS_BEFORE_CLUSTERS=$ERRORS
 
   for id in "${ALL_IDS[@]}"; do
-    printf '%s\n' "$listed" | grep -qx "$id" \
-      || fail "cluster: '$id' is on disk but in no cluster in skills.sh.json"
+    if ! grep -qx "$id" <<<"$listed"; then
+      fail "cluster: '$id' is on disk but in no cluster in $CLUSTERS_FILE"
+    fi
   done
 
   while read -r orphan; do
